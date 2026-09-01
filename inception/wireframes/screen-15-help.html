@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Screen 15 — Help & Support Centre | Azets ALM</title>
+<style>
+  :root {
+    --brand-500:#26CF7C; --brand-600:#1CAE68; --brand-100:#DDF8EA;
+    --ink-950:#0F0F0F; --ink-800:#2B2B2B; --ink-600:#5D625F;
+    --ink-400:#939A96; --canvas:#FFFFFF; --mist-50:#F7F8F7;
+    --mist-100:#EEF1EF; --border:#D9DEDB; --danger:#B42318;
+    --success:#16794D; --warning:#9A6400;
+    --radius-card:18px; --radius-pill:999px; --radius-control:10px;
+    --shadow-1:0 10px 35px rgba(15,15,15,.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif; background: #1a1a1a; }
+
+  /* Screen label */
+  .screen-label {
+    background: var(--ink-950); color: #fff;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; padding: 6px 16px; display: flex;
+    align-items: center; gap: 10px;
+  }
+  .screen-label .badge {
+    background: var(--brand-500); color: var(--ink-950);
+    border-radius: var(--radius-pill); padding: 2px 8px; font-size: 10px;
+  }
+
+  .shell { display: flex; flex-direction: column; height: calc(100vh - 28px); }
+
+  /* Top bar */
+  .topbar {
+    height: 64px; background: var(--ink-950);
+    border-bottom: 3px solid var(--brand-500);
+    display: flex; align-items: center;
+    padding: 0 24px; gap: 16px; flex-shrink: 0;
+  }
+  .logo { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+  .logo span { color: var(--brand-500); }
+  .topbar-spacer { flex: 1; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .notif-btn {
+    position: relative; background: none; border: none; cursor: pointer;
+    color: var(--ink-400); font-size: 20px; padding: 6px;
+  }
+  .notif-badge {
+    position: absolute; top: 4px; right: 4px;
+    background: var(--danger); border-radius: 50%;
+    width: 8px; height: 8px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--brand-500); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--ink-950);
+  }
+  .user-name { color: #fff; font-size: 13px; font-weight: 600; }
+
+  .body-area { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px; background: var(--ink-950);
+    flex-shrink: 0; overflow-y: auto; padding: 16px 0;
+  }
+  .nav-section-label {
+    color: var(--ink-400); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; padding: 8px 20px 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px; color: var(--ink-400);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .nav-item.active {
+    color: #fff; border-left-color: var(--brand-500);
+    background: rgba(38,207,124,.1);
+  }
+  .nav-item .icon { font-size: 15px; width: 18px; text-align: center; }
+
+  /* Main */
+  .main {
+    flex: 1; background: var(--mist-50);
+    overflow-y: auto; padding: 28px 40px;
+  }
+
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 22px; font-weight: 800; color: var(--ink-950); }
+  .page-sub { color: var(--ink-600); font-size: 13px; margin-top: 3px; }
+
+  /* Search bar */
+  .search-hero {
+    background: var(--canvas); border-radius: var(--radius-card);
+    padding: 28px 32px; box-shadow: var(--shadow-1);
+    border: 1px solid var(--border); margin-bottom: 28px;
+    text-align: center;
+  }
+  .search-hero-title {
+    font-size: 16px; font-weight: 700; color: var(--ink-950); margin-bottom: 4px;
+  }
+  .search-hero-sub {
+    font-size: 13px; color: var(--ink-400); margin-bottom: 18px;
+  }
+  .search-bar-wrap {
+    display: flex; max-width: 620px; margin: 0 auto;
+    background: var(--mist-50); border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill); overflow: hidden;
+    align-items: center; padding: 4px 8px 4px 18px;
+    transition: border-color .2s;
+  }
+  .search-bar-wrap:focus-within { border-color: var(--brand-500); }
+  .search-icon { font-size: 16px; color: var(--ink-400); margin-right: 8px; }
+  .search-bar-wrap input {
+    flex: 1; border: none; background: none; outline: none;
+    font-size: 14px; color: var(--ink-800); font-family: inherit;
+    padding: 8px 0;
+  }
+  .search-bar-wrap input::placeholder { color: var(--ink-400); }
+  .search-btn {
+    background: var(--brand-500); color: var(--ink-950);
+    border: none; border-radius: var(--radius-pill);
+    padding: 8px 20px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+
+  /* Quick help cards */
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .card {
+    background: var(--canvas); border-radius: var(--radius-card);
+    padding: 20px 22px; box-shadow: var(--shadow-1);
+    border: 1px solid var(--border);
+  }
+  .quick-card-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--brand-100); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 12px;
+  }
+  .quick-card-title {
+    font-size: 14px; font-weight: 700; color: var(--ink-950); margin-bottom: 6px;
+  }
+  .quick-card-sub {
+    font-size: 12px; color: var(--ink-600); line-height: 1.5;
+  }
+  .quick-card-link {
+    margin-top: 12px; font-size: 12px; font-weight: 600;
+    color: var(--brand-600); cursor: pointer; display: flex;
+    align-items: center; gap: 4px;
+  }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+  .section-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+  }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--ink-950); }
+  .ann-badge {
+    background: var(--ink-950); color: var(--brand-500);
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: var(--radius-pill); letter-spacing: .04em;
+    border: 1px solid rgba(38,207,124,.3);
+  }
+
+  /* Chat assistant */
+  .chat-card {
+    background: var(--canvas); border-radius: var(--radius-card);
+    box-shadow: var(--shadow-1); border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .chat-header {
+    background: var(--ink-950); padding: 14px 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .chat-header-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--brand-500); display: flex;
+    align-items: center; justify-content: center; font-size: 16px;
+  }
+  .chat-header-title {
+    font-size: 14px; font-weight: 700; color: #fff;
+  }
+  .chat-header-sub { font-size: 11px; color: var(--ink-400); }
+  .chat-status { margin-left: auto; display: flex; align-items: center; gap: 5px; }
+  .chat-status-dot { width: 7px; height: 7px; background: var(--brand-500); border-radius: 50%; }
+  .chat-status-text { font-size: 11px; color: var(--brand-500); font-weight: 600; }
+  .chat-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .chat-msg { display: flex; gap: 10px; }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-bubble {
+    max-width: 76%; padding: 10px 14px; border-radius: 14px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .chat-bubble.user-bubble {
+    background: var(--ink-950); color: #fff; border-radius: 14px 14px 4px 14px;
+  }
+  .chat-bubble.ai-bubble {
+    background: var(--mist-50); color: var(--ink-800);
+    border: 1px solid var(--border); border-radius: 14px 14px 14px 4px;
+  }
+  .chat-avatar-sm {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+  }
+  .chat-avatar-sm.user { background: var(--brand-500); color: var(--ink-950); }
+  .chat-avatar-sm.ai { background: var(--ink-800); color: #fff; }
+  .ai-codes {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+  }
+  .code-chip {
+    background: var(--brand-100); color: var(--success);
+    font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: var(--radius-pill); font-family: monospace;
+  }
+  .chat-input-row {
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: center;
+    background: var(--mist-50);
+  }
+  .chat-input {
+    flex: 1; border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill); padding: 10px 16px;
+    font-size: 13px; font-family: inherit; outline: none;
+    background: var(--canvas); color: var(--ink-800);
+  }
+  .chat-input::placeholder { color: var(--ink-400); }
+  .chat-send {
+    background: var(--brand-500); border: none; border-radius: 50%;
+    width: 38px; height: 38px; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; color: var(--ink-950);
+  }
+
+  /* FAQ accordion */
+  .faq-list { background: var(--canvas); border-radius: var(--radius-card); box-shadow: var(--shadow-1); border: 1px solid var(--border); overflow: hidden; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-q {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: var(--ink-950);
+  }
+  .faq-q:hover { background: var(--mist-50); }
+  .faq-q.open { color: var(--brand-600); background: var(--brand-100); }
+  .faq-chevron { color: var(--ink-400); font-size: 12px; transition: transform .2s; }
+  .faq-q.open .faq-chevron { transform: rotate(180deg); color: var(--brand-600); }
+  .faq-answer {
+    padding: 0 20px 14px; font-size: 13px; color: var(--ink-600);
+    line-height: 1.6; display: none;
+  }
+  .faq-answer.open { display: block; }
+  .faq-tag {
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: var(--radius-pill); margin-right: 8px;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  .faq-tag.upload { background: #FEF3C7; color: var(--warning); }
+  .faq-tag.mapping { background: var(--brand-100); color: var(--success); }
+  .faq-tag.sync { background: #EDE9FE; color: #7C3AED; }
+  .faq-tag.export { background: #EFF6FF; color: #2563EB; }
+
+  /* Two col */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* Support ticket form */
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    font-size: 12px; font-weight: 600; color: var(--ink-800);
+    display: block; margin-bottom: 5px;
+  }
+  .form-control {
+    width: 100%; border: 1.5px solid var(--border);
+    border-radius: var(--radius-control); padding: 9px 12px;
+    font-size: 13px; font-family: inherit; color: var(--ink-800);
+    outline: none; background: var(--canvas);
+  }
+  .form-control:focus { border-color: var(--brand-500); }
+  textarea.form-control { resize: vertical; min-height: 90px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-primary {
+    background: var(--brand-500); border: none;
+    border-radius: var(--radius-control); padding: 11px 24px;
+    font-size: 13px; font-weight: 700; color: var(--ink-950);
+    cursor: pointer; font-family: inherit; width: 100%;
+  }
+  .file-upload-area {
+    border: 1.5px dashed var(--border); border-radius: var(--radius-control);
+    padding: 16px; text-align: center; cursor: pointer;
+    background: var(--mist-50);
+  }
+  .file-upload-area:hover { border-color: var(--brand-500); background: var(--brand-100); }
+  .file-upload-icon { font-size: 22px; margin-bottom: 4px; }
+  .file-upload-text { font-size: 12px; color: var(--ink-400); }
+  .contact-box {
+    background: var(--mist-50); border-radius: 12px;
+    border: 1px solid var(--border); padding: 16px;
+    margin-top: 14px;
+  }
+  .contact-title { font-size: 13px; font-weight: 700; color: var(--ink-950); margin-bottom: 10px; }
+  .contact-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--ink-600); margin-bottom: 6px;
+  }
+  .contact-item:last-child { margin-bottom: 0; }
+
+  /* KB article grid */
+  .kb-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .kb-card {
+    background: var(--canvas); border-radius: 14px;
+    padding: 16px 18px; box-shadow: var(--shadow-1);
+    border: 1px solid var(--border); cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .kb-card:hover { border-color: var(--brand-500); box-shadow: 0 4px 20px rgba(38,207,124,.12); }
+  .kb-tag {
+    font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: var(--radius-pill); margin-bottom: 8px;
+    display: inline-block; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .kb-title { font-size: 13px; font-weight: 700; color: var(--ink-950); margin-bottom: 6px; line-height: 1.4; }
+  .kb-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .kb-read-time { font-size: 11px; color: var(--ink-400); }
+  .kb-link { font-size: 12px; font-weight: 600; color: var(--brand-600); }
+</style>
+</head>
+<body>
+
+<!-- Screen label -->
+<div class="screen-label">
+  <span class="badge">Screen 15</span>
+  Help & Support Centre
+  <span style="color:var(--ink-400);">|</span>
+  Epic F2.3 — Guided Uploads · Mapping Assistant · Troubleshooting · Support Requests · Knowledge Base
+</div>
+
+<div class="shell">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="logo">Azets <span>ALM</span></div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-right">
+      <button class="notif-btn">🔔<span class="notif-badge"></span></button>
+      <div class="avatar">PS</div>
+      <span class="user-name">Priya Sharma</span>
+    </div>
+  </div>
+
+  <div class="body-area">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item"><span class="icon">⊞</span>Dashboard</div>
+      <div class="nav-item"><span class="icon">↑</span>Upload File</div>
+      <div class="nav-item"><span class="icon">⚡</span>Run Mapping</div>
+      <div class="nav-item"><span class="icon">☑</span>Review Queue</div>
+
+      <div class="nav-section-label">Management</div>
+      <div class="nav-item"><span class="icon">📋</span>Sessions</div>
+      <div class="nav-item"><span class="icon">🔗</span>Cozone Sync</div>
+      <div class="nav-item"><span class="icon">📊</span>Analytics</div>
+      <div class="nav-item"><span class="icon">📄</span>Reports</div>
+
+      <div class="nav-section-label">Admin</div>
+      <div class="nav-item"><span class="icon">👥</span>Users</div>
+      <div class="nav-item"><span class="icon">⚙</span>Settings</div>
+      <div class="nav-item active"><span class="icon">❓</span>Help & Support</div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-title">Help & Support Centre</div>
+        <div class="page-sub">Guides, troubleshooting and support</div>
+      </div>
+
+      <!-- Search hero -->
+      <div class="search-hero">
+        <div class="search-hero-title">How can we help?</div>
+        <div class="search-hero-sub">Search 200+ articles, guides, and troubleshooting steps</div>
+        <div class="search-bar-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search help articles, guides and troubleshooting..."/>
+          <button class="search-btn">Search</button>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--ink-400);">
+          Popular: <a style="color:var(--brand-600);cursor:pointer;margin-right:10px">Upload validation</a>
+          <a style="color:var(--brand-600);cursor:pointer;margin-right:10px">Confidence score</a>
+          <a style="color:var(--brand-600);cursor:pointer;margin-right:10px">Manual override</a>
+          <a style="color:var(--brand-600);cursor:pointer">Cozone sync errors</a>
+        </div>
+      </div>
+
+      <!-- Quick help cards -->
+      <div class="three-col">
+        <div class="card">
+          <div class="quick-card-icon">📤</div>
+          <div class="quick-card-title">Getting Started</div>
+          <div class="quick-card-sub">Upload your first account file, configure mapping parameters and run your first ALM session in under 5 minutes.</div>
+          <div class="quick-card-link">Step-by-step guide →</div>
+        </div>
+        <div class="card">
+          <div class="quick-card-icon">🧠</div>
+          <div class="quick-card-title">Understanding AI Mapping</div>
+          <div class="quick-card-sub">Learn how confidence scores are calculated, what triggers ambiguous flags, and how to interpret mapping results.</div>
+          <div class="quick-card-link">Read the guide →</div>
+        </div>
+        <div class="card">
+          <div class="quick-card-icon">✏️</div>
+          <div class="quick-card-title">Manual Override Guide</div>
+          <div class="quick-card-sub">Understand when and how to use manual overrides, override approval workflows and audit trail implications.</div>
+          <div class="quick-card-link">View override guide →</div>
+        </div>
+      </div>
+
+      <!-- AI Help Assistant -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">AI Mapping Assistant</div>
+          <span class="ann-badge">F2.3.2</span>
+        </div>
+        <div class="chat-card">
+          <div class="chat-header">
+            <div class="chat-header-icon">🤖</div>
+            <div>
+              <div class="chat-header-title">Mapping Assistant</div>
+              <div class="chat-header-sub">Ask me anything about account mapping</div>
+            </div>
+            <div class="chat-status">
+              <div class="chat-status-dot"></div>
+              <span class="chat-status-text">Online</span>
+            </div>
+          </div>
+          <div class="chat-body">
+            <!-- User message -->
+            <div class="chat-msg user">
+              <div class="chat-avatar-sm user">PS</div>
+              <div class="chat-bubble user-bubble">Why was MUL-2847 flagged as ambiguous?</div>
+            </div>
+            <!-- AI response -->
+            <div class="chat-msg">
+              <div class="chat-avatar-sm ai">AI</div>
+              <div class="chat-bubble ai-bubble">
+                <strong>Account MUL-2847 — Suspense Account Legacy</strong> matched 3 possible Azets codes with confidence scores below the 75% threshold, making a definitive auto-mapping impossible:
+                <div class="ai-codes">
+                  <span class="code-chip">AZT-5510</span>
+                  <span class="code-chip">AZT-5520</span>
+                  <span class="code-chip">AZT-3010</span>
+                </div>
+                <div style="margin-top:8px;font-size:12px;color:var(--ink-400)">
+                  Scores: 72% / 68% / 61% — all below the 75% auto-map threshold. Recommend reviewing the account description and selecting AZT-5510 (Suspense — Short Term) if the account holds transactions under 90 days.
+                </div>
+                <div style="margin-top:10px;display:flex;gap:8px">
+                  <span style="background:var(--mist-100);border:1px solid var(--border);border-radius:var(--radius-pill);padding:3px 10px;font-size:11px;font-weight:600;color:var(--ink-600);cursor:pointer">View in Review Queue →</span>
+                  <span style="background:var(--mist-100);border:1px solid var(--border);border-radius:var(--radius-pill);padding:3px 10px;font-size:11px;font-weight:600;color:var(--ink-600);cursor:pointer">AZT-5510 details</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input class="chat-input" placeholder="Type your question here..." type="text"/>
+            <button class="chat-send">➤</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Troubleshooting catalog -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Troubleshooting Catalog</div>
+          <span class="ann-badge">F2.3.3</span>
+        </div>
+        <div class="faq-list">
+          <!-- Expanded #1 -->
+          <div class="faq-item">
+            <div class="faq-q open">
+              <span><span class="faq-tag upload">Upload</span>File upload fails validation — what formats are accepted?</span>
+              <span class="faq-chevron">▲</span>
+            </div>
+            <div class="faq-answer open">
+              ALM accepts <strong>.xlsx, .xls, .csv, and .ods</strong> formats. Common validation failures include: (1) Missing required column headers — your file must contain at least <em>Account Code</em>, <em>Account Name</em>, and <em>Balance</em> columns. (2) File size exceeds 50MB limit — split large files by division. (3) Encoding issues — ensure files are saved as UTF-8. Download the <a style="color:var(--brand-600)">template file</a> for the correct format.
+            </div>
+          </div>
+          <!-- Expanded #2 -->
+          <div class="faq-item">
+            <div class="faq-q open">
+              <span><span class="faq-tag mapping">Mapping</span>AI mapping shows very low confidence scores (&lt;60%) across most accounts</span>
+              <span class="faq-chevron">▲</span>
+            </div>
+            <div class="faq-answer open">
+              Low confidence across the board usually indicates a structural mismatch between your chart of accounts and the Azets reference framework. Check: (1) Your account codes use a non-standard prefix format — go to Settings → Mapping Profile to configure prefix normalisation. (2) Account descriptions are too abbreviated — the AI uses semantic analysis and needs descriptive names. (3) You may be using a legacy CoA version — contact your ALM administrator to update the reference set.
+            </div>
+          </div>
+          <!-- Collapsed items -->
+          <div class="faq-item">
+            <div class="faq-q">
+              <span><span class="faq-tag sync">Sync</span>Cozone sync times out — session appears stuck at "Syncing"</span>
+              <span class="faq-chevron">▼</span>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">
+              <span><span class="faq-tag export">Export</span>How to export an audit-ready report in PDF format</span>
+              <span class="faq-chevron">▼</span>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">
+              <span><span class="faq-tag mapping">Mapping</span>How do I approve a manual override as Finance Manager?</span>
+              <span class="faq-chevron">▼</span>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">
+              <span><span class="faq-tag upload">Upload</span>Duplicate accounts detected — should I deduplicate before uploading?</span>
+              <span class="faq-chevron">▼</span>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">
+              <span><span class="faq-tag sync">Sync</span>Cozone connection error — invalid API credentials</span>
+              <span class="faq-chevron">▼</span>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">
+              <span><span class="faq-tag export">Export</span>Bulk-downloading session history for regulatory review</span>
+              <span class="faq-chevron">▼</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Support + KB in two columns -->
+      <div class="two-col">
+        <!-- Support request -->
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Raise a Support Ticket</div>
+            <span class="ann-badge">F2.3.4</span>
+          </div>
+          <div class="card">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-control">
+                  <option>Select category…</option>
+                  <option>File Upload Issue</option>
+                  <option>Mapping / AI Problem</option>
+                  <option>Cozone Sync Error</option>
+                  <option>Access / Permissions</option>
+                  <option>Reporting</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select class="form-control">
+                  <option>Select priority…</option>
+                  <option>🔴 Critical — blocking work</option>
+                  <option>🟠 High — significant impact</option>
+                  <option>🟡 Medium — workaround exists</option>
+                  <option>🟢 Low — minor issue</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" placeholder="Describe the issue in detail — include session IDs, account codes and any error messages..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Attach file (optional)</label>
+              <div class="file-upload-area">
+                <div class="file-upload-icon">📎</div>
+                <div class="file-upload-text">Drop a file here or click to browse<br/><span style="font-size:10px">PNG, PDF, XLSX up to 10MB</span></div>
+              </div>
+            </div>
+            <button class="btn-primary">Submit Ticket</button>
+            <div class="contact-box">
+              <div class="contact-title">📞 Direct Support</div>
+              <div class="contact-item">📧 <a style="color:var(--brand-600)">support@azets.com</a></div>
+              <div class="contact-item">📞 0800-123-4567</div>
+              <div class="contact-item" style="font-size:11px;color:var(--ink-400)">Mon–Fri 8am–6pm GMT · Avg response: 4h</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Knowledge base -->
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Knowledge Base</div>
+            <span class="ann-badge">F2.3.5</span>
+          </div>
+          <div class="kb-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="kb-card">
+              <span class="kb-tag" style="background:var(--brand-100);color:var(--success)">Guide</span>
+              <div class="kb-title">Complete Upload & Validation Guide</div>
+              <div class="kb-meta"><span class="kb-read-time">⏱ 8 min read</span><span class="kb-link">Read →</span></div>
+            </div>
+            <div class="kb-card">
+              <span class="kb-tag" style="background:#EDE9FE;color:#7C3AED">AI / ML</span>
+              <div class="kb-title">How the Confidence Score Algorithm Works</div>
+              <div class="kb-meta"><span class="kb-read-time">⏱ 12 min read</span><span class="kb-link">Read →</span></div>
+            </div>
+            <div class="kb-card">
+              <span class="kb-tag" style="background:#FEF3C7;color:var(--warning)">Override</span>
+              <div class="kb-title">Override Approval Workflow — Finance Manager</div>
+              <div class="kb-meta"><span class="kb-read-time">⏱ 5 min read</span><span class="kb-link">Read →</span></div>
+            </div>
+            <div class="kb-card">
+              <span class="kb-tag" style="background:#EFF6FF;color:#2563EB">Cozone</span>
+              <div class="kb-title">Cozone Integration Setup and API Config</div>
+              <div class="kb-meta"><span class="kb-read-time">⏱ 10 min read</span><span class="kb-link">Read →</span></div>
+            </div>
+            <div class="kb-card">
+              <span class="kb-tag" style="background:#FEE2E2;color:var(--danger)">Audit</span>
+              <div class="kb-title">Generating Audit-Ready Reports for Regulators</div>
+              <div class="kb-meta"><span class="kb-read-time">⏱ 6 min read</span><span class="kb-link">Read →</span></div>
+            </div>
+            <div class="kb-card">
+              <span class="kb-tag" style="background:var(--mist-100);color:var(--ink-600)">Admin</span>
+              <div class="kb-title">User Roles and Permissions Reference</div>
+              <div class="kb-meta"><span class="kb-read-time">⏱ 4 min read</span><span class="kb-link">Read →</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

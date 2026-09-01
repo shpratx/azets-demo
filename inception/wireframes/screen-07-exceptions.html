@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 07 — Exception Queue | Azets ALM</title>
+<style>
+  :root {
+    --brand-500: #26CF7C;
+    --ink-950: #0F0F0F;
+    --ink-800: #2B2B2B;
+    --ink-600: #5D625F;
+    --ink-400: #939A96;
+    --canvas: #FFFFFF;
+    --mist-50: #F7F8F7;
+    --mist-100: #EEF1EF;
+    --border: #D9DEDB;
+    --danger: #B42318;
+    --success: #16794D;
+    --warning: #9A6400;
+    --brand-100: #DDF8EA;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+    --radius-control: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: var(--mist-50);
+    color: var(--ink-800);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .screen-label-bar {
+    background: var(--ink-950);
+    color: var(--brand-500);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 6px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .screen-label-bar span { color: var(--ink-400); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  .topbar {
+    height: 64px;
+    background: var(--ink-950);
+    border-bottom: 3px solid var(--brand-500);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 20px;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+  .topbar-logo { font-size: 18px; font-weight: 800; color: var(--canvas); letter-spacing: -.02em; }
+  .topbar-logo em { color: var(--brand-500); font-style: normal; }
+  .topbar-divider { width: 1px; height: 28px; background: #2a2a2a; }
+  .topbar-title { color: var(--ink-400); font-size: 13px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .topbar-firm-badge {
+    background: #1a1a1a; border: 1px solid #333; color: var(--ink-400);
+    font-size: 12px; padding: 5px 12px; border-radius: var(--radius-pill);
+  }
+  .topbar-firm-badge strong { color: var(--canvas); }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--brand-500);
+    color: var(--ink-950); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+
+  .app-shell { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: 240px; background: var(--ink-950); flex-shrink: 0;
+    display: flex; flex-direction: column; padding: 16px 0;
+    overflow-y: auto; border-right: 1px solid #1a1a1a;
+  }
+  .sidebar-section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: #404040; padding: 12px 20px 6px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+    color: var(--ink-400); font-size: 13px; cursor: pointer;
+    border-left: 3px solid transparent; transition: all .15s; text-decoration: none;
+  }
+  .sidebar-item:hover { color: var(--canvas); background: rgba(255,255,255,.04); }
+  .sidebar-item.active {
+    color: var(--brand-500); background: rgba(38,207,124,.1);
+    border-left-color: var(--brand-500); font-weight: 600;
+  }
+  .sidebar-item .icon { font-size: 15px; width: 18px; text-align: center; }
+  .sidebar-badge {
+    margin-left: auto; background: var(--danger); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 6px;
+    border-radius: var(--radius-pill); min-width: 18px; text-align: center;
+  }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--mist-50); }
+
+  .page-header {
+    background: var(--canvas); border-bottom: 1px solid var(--border);
+    padding: 16px 28px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
+  .page-header h1 { font-size: 20px; font-weight: 700; color: var(--ink-950); }
+  .count-badge {
+    background: var(--danger); color: #fff; font-size: 13px; font-weight: 700;
+    padding: 3px 12px; border-radius: var(--radius-pill);
+  }
+  .annotation-badge {
+    display: inline-flex; align-items: center; font-size: 10px; font-weight: 700;
+    background: var(--ink-950); color: var(--brand-500); padding: 2px 8px;
+    border-radius: var(--radius-pill); letter-spacing: .04em;
+  }
+
+  /* Filter tabs */
+  .filter-bar {
+    background: var(--canvas); border-bottom: 1px solid var(--border);
+    padding: 0 28px; display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+  }
+  .filter-tab {
+    padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--ink-600);
+    cursor: pointer; border-bottom: 2.5px solid transparent; white-space: nowrap;
+    transition: all .15s;
+  }
+  .filter-tab:hover { color: var(--ink-800); }
+  .filter-tab.active { color: var(--brand-500); border-bottom-color: var(--brand-500); font-weight: 700; }
+  .filter-tab .tab-count {
+    display: inline-block; background: var(--mist-100); color: var(--ink-600);
+    font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: var(--radius-pill); margin-left: 4px;
+  }
+  .filter-tab.active .tab-count { background: var(--brand-100); color: var(--success); }
+
+  /* Content area with flyout */
+  .content-area { flex: 1; display: flex; overflow: hidden; }
+  .table-area { flex: 1; overflow-y: auto; padding: 20px 28px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Stats row */
+  .stats-row { display: flex; gap: 12px; flex-shrink: 0; }
+  .stat-card {
+    background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); padding: 16px 20px; flex: 1;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-400); }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--ink-950); line-height: 1; }
+  .stat-value.danger { color: var(--danger); }
+  .stat-value.warning { color: var(--warning); }
+  .stat-value.success { color: var(--success); }
+  .stat-sub { font-size: 11px; color: var(--ink-400); }
+
+  /* Toolbar */
+  .table-toolbar {
+    background: var(--canvas); border-radius: 12px; border: 1px solid var(--border);
+    padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .toolbar-label { font-size: 12px; font-weight: 600; color: var(--ink-600); }
+  .select-input {
+    border: 1.5px solid var(--border); border-radius: var(--radius-control);
+    padding: 7px 12px; font-size: 13px; font-family: inherit; color: var(--ink-800);
+    outline: none; background: var(--canvas); cursor: pointer; min-width: 180px;
+  }
+  .select-input:focus { border-color: var(--brand-500); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px;
+    border-radius: var(--radius-pill); font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; transition: all .15s; font-family: inherit;
+  }
+  .btn-primary { background: var(--brand-500); color: var(--ink-950); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { background: transparent; color: var(--ink-600); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--ink-400); color: var(--ink-800); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-danger-ghost { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); }
+
+  .divider-v { width: 1px; height: 24px; background: var(--border); }
+
+  /* Table */
+  .table-card {
+    background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 11px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--ink-400); background: var(--mist-50);
+    border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap;
+  }
+  thead th:first-child { width: 36px; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--mist-50); }
+  tbody tr.danger-row { background: #FFF5F5; }
+  tbody tr.danger-row:hover { background: #FFEDED; }
+  tbody tr.selected-row { background: rgba(38,207,124,.06); }
+  td { padding: 11px 14px; font-size: 13px; color: var(--ink-800); vertical-align: middle; }
+
+  /* Chips */
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; padding: 3px 10px;
+    border-radius: var(--radius-pill); white-space: nowrap;
+  }
+  .chip::before { content: '●'; font-size: 7px; }
+  .chip-danger { background: #FEE2E2; color: var(--danger); }
+  .chip-warning { background: #FEF3C7; color: var(--warning); }
+  .chip-success { background: var(--brand-100); color: var(--success); }
+  .chip-neutral { background: var(--mist-100); color: var(--ink-600); }
+  .chip-blue { background: #DBEAFE; color: #1D4ED8; }
+  .chip-purple { background: #EDE9FE; color: #6D28D9; }
+  .chip-orange { background: #FFEDD5; color: #C2410C; }
+
+  .code-mono {
+    font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700;
+    background: var(--mist-100); padding: 2px 8px; border-radius: 6px; color: var(--ink-800);
+  }
+  .code-mono.dark { background: var(--ink-950); color: var(--brand-500); }
+
+  .conf-mini { font-size: 12px; font-weight: 600; }
+  .conf-mini.low { color: var(--danger); }
+  .conf-mini.med { color: var(--warning); }
+  .conf-mini.high { color: var(--success); }
+
+  .action-btns { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--mist-100); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; cursor: pointer; transition: all .15s;
+    text-decoration: none;
+  }
+  .icon-btn:hover { background: var(--mist-50); border-color: var(--brand-500); }
+
+  input[type="checkbox"] {
+    width: 15px; height: 15px; accent-color: var(--brand-500); cursor: pointer;
+  }
+
+  .age-badge { font-size: 12px; font-weight: 600; color: var(--ink-600); }
+  .age-badge.old { color: var(--danger); font-weight: 700; }
+
+  /* Flyout */
+  .flyout {
+    width: 340px; flex-shrink: 0;
+    background: var(--canvas); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .flyout-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  }
+  .flyout-title { font-size: 14px; font-weight: 700; color: var(--ink-950); flex: 1; }
+  .flyout-close {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--mist-100);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 14px; cursor: pointer; color: var(--ink-600);
+  }
+  .flyout-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .flyout-section { }
+  .flyout-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--ink-400); margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px; }
+  .detail-row .dk { font-size: 11px; color: var(--ink-400); font-weight: 600; flex-shrink: 0; }
+  .detail-row .dv { font-size: 12px; color: var(--ink-800); font-weight: 500; text-align: right; }
+  .reasoning-box {
+    background: var(--mist-50); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; font-size: 12px; color: var(--ink-600); line-height: 1.5;
+  }
+  .suggested-action {
+    background: var(--brand-100); border: 1px solid #b3ecd3; border-radius: 10px;
+    padding: 10px 12px; font-size: 12px; color: var(--success); font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .history-item {
+    display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  .history-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .history-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--ink-400);
+    flex-shrink: 0; margin-top: 4px;
+  }
+  .history-dot.green { background: var(--brand-500); }
+  .history-user { font-size: 12px; font-weight: 600; color: var(--ink-800); }
+  .history-time { font-size: 11px; color: var(--ink-400); }
+  .history-action { font-size: 12px; color: var(--ink-600); margin-top: 2px; }
+  .flyout-actions { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div class="screen-label-bar">
+  Screen 07 — Ambiguity / Exception Queue
+  <span>Epic F1.4 · Features: F1.4.1 · F1.4.2 · F1.4.3 · F1.4.4 · F1.4.5</span>
+</div>
+
+<div class="topbar">
+  <div class="topbar-logo">Azets <em>ALM</em></div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-title">Account Ledger Migration</div>
+  <div class="topbar-right">
+    <div class="topbar-firm-badge">Session: <strong>A-2024-089</strong></div>
+    <div class="topbar-firm-badge">Firm: <strong>Muldoon &amp; Co</strong></div>
+    <div class="avatar">PS</div>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <nav class="sidebar">
+    <div class="sidebar-section-label">Migration</div>
+    <a class="sidebar-item" href="#"><span class="icon">📤</span> File Upload</a>
+    <a class="sidebar-item" href="#"><span class="icon">✅</span> Validation</a>
+    <a class="sidebar-item" href="#"><span class="icon">🤖</span> AI Mapping</a>
+    <a class="sidebar-item" href="#"><span class="icon">🔧</span> Manual Workbench <span class="sidebar-badge">226</span></a>
+    <a class="sidebar-item active" href="#"><span class="icon">⚠️</span> Exceptions <span class="sidebar-badge">226</span></a>
+    <a class="sidebar-item" href="#"><span class="icon">🔄</span> Cozone Sync</a>
+    <a class="sidebar-item" href="#"><span class="icon">📋</span> Audit Reports</a>
+    <div class="sidebar-section-label" style="margin-top:12px;">Session</div>
+    <a class="sidebar-item" href="#"><span class="icon">📊</span> Dashboard</a>
+    <a class="sidebar-item" href="#"><span class="icon">⚙️</span> Settings</a>
+  </nav>
+
+  <div class="main">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Exception Queue</h1>
+      <span class="count-badge">226 items</span>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <span class="annotation-badge">F1.4.2 Review Queue</span>
+        <span class="annotation-badge">F1.4.4 Workflow</span>
+        <span class="annotation-badge">F1.4.5 Assignment</span>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-tab active">All Exceptions <span class="tab-count">226</span></div>
+      <div class="filter-tab">Ambiguous Mapping <span class="tab-count">147</span></div>
+      <div class="filter-tab">Missing Account <span class="tab-count">44</span></div>
+      <div class="filter-tab">Duplicate Code <span class="tab-count">22</span></div>
+      <div class="filter-tab">No Match <span class="tab-count">13</span></div>
+      <div class="filter-tab">System Error <span class="tab-count">0</span></div>
+    </div>
+
+    <div class="content-area">
+
+      <div class="table-area">
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Ambiguous</div>
+            <div class="stat-value warning">147</div>
+            <div class="stat-sub">Multiple possible matches</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Missing Code</div>
+            <div class="stat-value danger">44</div>
+            <div class="stat-sub">No source record found</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Duplicate</div>
+            <div class="stat-value" style="color:#C2410C;">22</div>
+            <div class="stat-sub">Code appears multiple times</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">No Match</div>
+            <div class="stat-value danger">13</div>
+            <div class="stat-sub">Zero AI candidates found</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="table-toolbar">
+          <input type="checkbox" title="Select all high priority">
+          <span class="toolbar-label">Select all High Priority</span>
+          <div class="divider-v"></div>
+          <span class="toolbar-label">Assign to reviewer:</span>
+          <select class="select-input">
+            <option>— Select reviewer —</option>
+            <option>Raj Patel</option>
+            <option>Sarah Thompson</option>
+            <option>James Liu</option>
+            <option>Emma Osei</option>
+          </select>
+          <button class="btn btn-primary btn-sm">Assign Selected</button>
+          <div class="divider-v"></div>
+          <button class="btn btn-ghost btn-sm">⬆ Bulk Escalate</button>
+          <button class="btn btn-ghost btn-sm">📤 Export</button>
+          <div style="margin-left:auto; font-size:12px; color:var(--ink-400);">8 selected of 226</div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox"></th>
+                <th>Priority</th>
+                <th>Account Code</th>
+                <th>Account Name</th>
+                <th>Exception Type</th>
+                <th>AI Confidence</th>
+                <th>Assigned To</th>
+                <th>Age</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1 — High / danger-row -->
+              <tr class="danger-row">
+                <td><input type="checkbox" checked></td>
+                <td><span class="chip chip-danger">High</span></td>
+                <td><span class="code-mono dark">MUL-1104</span></td>
+                <td>Directors Loan Account</td>
+                <td><span class="chip chip-orange">No Match</span></td>
+                <td><span class="conf-mini low">0%</span></td>
+                <td style="color:var(--ink-400); font-size:12px; font-style:italic;">Unassigned</td>
+                <td><span class="age-badge old">48 hrs</span></td>
+                <td>
+                  <div class="action-btns">
+                    <div class="icon-btn" title="Review">🔍</div>
+                    <div class="icon-btn" title="Assign">👤</div>
+                    <div class="icon-btn" title="Escalate">⬆</div>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 2 — High / danger-row -->
+              <tr class="danger-row">
+                <td><input type="checkbox" checked></td>
+                <td><span class="chip chip-danger">High</span></td>
+                <td><span class="code-mono dark">MUL-5512</span></td>
+                <td>Goodwill Amortisation Reserve</td>
+                <td><span class="chip chip-orange">No Match</span></td>
+                <td><span class="conf-mini low">0%</span></td>
+                <td style="color:var(--ink-400); font-size:12px; font-style:italic;">Unassigned</td>
+                <td><span class="age-badge old">52 hrs</span></td>
+                <td>
+                  <div class="action-btns">
+                    <div class="icon-btn">🔍</div>
+                    <div class="icon-btn">👤</div>
+                    <div class="icon-btn">⬆</div>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 3 — selected-row -->
+              <tr class="selected-row">
+                <td><input type="checkbox" checked></td>
+                <td><span class="chip chip-warning">Med</span></td>
+                <td><span class="code-mono dark">MUL-2847</span></td>
+                <td>Suspense Account Legacy</td>
+                <td><span class="chip chip-warning">Ambiguous</span></td>
+                <td><span class="conf-mini med">68%</span></td>
+                <td>Raj Patel</td>
+                <td><span class="age-badge">4 hrs</span></td>
+                <td>
+                  <div class="action-btns">
+                    <div class="icon-btn">🔍</div>
+                    <div class="icon-btn">👤</div>
+                    <div class="icon-btn">⬆</div>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 4 — Med -->
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="chip chip-warning">Med</span></td>
+                <td><span class="code-mono dark">MUL-0088</span></td>
+                <td>Intercompany Clearing</td>
+                <td><span class="chip chip-warning">Ambiguous</span></td>
+                <td><span class="conf-mini med">61%</span></td>
+                <td>Sarah Thompson</td>
+                <td><span class="age-badge">6 hrs</span></td>
+                <td>
+                  <div class="action-btns">
+                    <div class="icon-btn">🔍</div>
+                    <div class="icon-btn">👤</div>
+                    <div class="icon-btn">⬆</div>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 5 — Med / Duplicate -->
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="chip chip-warning">Med</span></td>
+                <td><span class="code-mono dark">MUL-3301</span></td>
+                <td>Deferred Revenue Q3</td>
+                <td><span class="chip chip-purple">Duplicate</span></td>
+                <td><span class="conf-mini med">52%</span></td>
+                <td>James Liu</td>
+                <td><span class="age-badge">8 hrs</span></td>
+                <td>
+                  <div class="action-btns">
+                    <div class="icon-btn">🔍</div>
+                    <div class="icon-btn">👤</div>
+                    <div class="icon-btn">⬆</div>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 6 — Low -->
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="chip chip-success">Low</span></td>
+                <td><span class="code-mono dark">MUL-4490</span></td>
+                <td>Accruals — Payroll Legacy</td>
+                <td><span class="chip chip-warning">Ambiguous</span></td>
+                <td><span class="conf-mini med">71%</span></td>
+                <td>Emma Osei</td>
+                <td><span class="age-badge">2 hrs</span></td>
+                <td>
+                  <div class="action-btns">
+                    <div class="icon-btn">🔍</div>
+                    <div class="icon-btn">👤</div>
+                    <div class="icon-btn">⬆</div>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 7 — Low / Missing -->
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="chip chip-success">Low</span></td>
+                <td><span class="code-mono dark">MUL-7721</span></td>
+                <td>Provision for Doubtful Debts</td>
+                <td><span class="chip chip-blue">Missing Acct</span></td>
+                <td><span class="conf-mini low">48%</span></td>
+                <td>Raj Patel</td>
+                <td><span class="age-badge">1 hr</span></td>
+                <td>
+                  <div class="action-btns">
+                    <div class="icon-btn">🔍</div>
+                    <div class="icon-btn">👤</div>
+                    <div class="icon-btn">⬆</div>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 8 — Low -->
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="chip chip-success">Low</span></td>
+                <td><span class="code-mono dark">MUL-9003</span></td>
+                <td>Retained Earnings Pre-2020</td>
+                <td><span class="chip chip-warning">Ambiguous</span></td>
+                <td><span class="conf-mini med">55%</span></td>
+                <td style="color:var(--ink-400); font-size:12px; font-style:italic;">Unassigned</td>
+                <td><span class="age-badge">3 hrs</span></td>
+                <td>
+                  <div class="action-btns">
+                    <div class="icon-btn">🔍</div>
+                    <div class="icon-btn">👤</div>
+                    <div class="icon-btn">⬆</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-400); padding-bottom:8px;">
+          Showing 8 of 226 items
+          <div style="margin-left:auto; display:flex; gap:6px;">
+            <button class="btn btn-ghost btn-sm">← Previous</button>
+            <button class="btn btn-ghost btn-sm" style="background:var(--brand-100); color:var(--success); border-color:transparent;">1</button>
+            <button class="btn btn-ghost btn-sm">2</button>
+            <button class="btn btn-ghost btn-sm">3</button>
+            <span style="padding:6px 4px;">…</span>
+            <button class="btn btn-ghost btn-sm">29</button>
+            <button class="btn btn-ghost btn-sm">Next →</button>
+          </div>
+        </div>
+
+      </div><!-- /table-area -->
+
+      <!-- Flyout Panel -->
+      <div class="flyout">
+        <div class="flyout-header">
+          <div>
+            <div class="flyout-title">MUL-2847 — Exception Detail</div>
+            <div style="font-size:11px; color:var(--ink-400); margin-top:2px;">Ambiguous Mapping · Assigned: Raj Patel</div>
+          </div>
+          <div class="flyout-close">✕</div>
+        </div>
+        <div class="flyout-body">
+
+          <!-- Account Details -->
+          <div class="flyout-section">
+            <div class="flyout-section-title">Account Details</div>
+            <div class="detail-row"><span class="dk">Code</span><span class="dv"><span class="code-mono">MUL-2847</span></span></div>
+            <div class="detail-row"><span class="dk">Name</span><span class="dv">Suspense Account Legacy</span></div>
+            <div class="detail-row"><span class="dk">Type</span><span class="dv">Control Account</span></div>
+            <div class="detail-row"><span class="dk">Parent</span><span class="dv"><span class="code-mono">MUL-2800</span></span></div>
+            <div class="detail-row"><span class="dk">Priority</span><span class="dv"><span class="chip chip-warning" style="font-size:10px;">Med</span></span></div>
+          </div>
+
+          <!-- AI Reasoning -->
+          <div class="flyout-section">
+            <div class="flyout-section-title">AI Reasoning (F1.4.1)</div>
+            <div class="reasoning-box">
+              Two candidate matches found with similar confidence scores:<br><br>
+              • <strong>AZT-5510</strong> Suspense Control — 68%<br>
+              • <strong>AZT-5520</strong> Legacy Migration Holding — 63%<br><br>
+              Score delta below threshold (5pp). Flagged as ambiguous per rule AMB-02. Manual review required to determine correct target.
+            </div>
+          </div>
+
+          <!-- Suggested Actions -->
+          <div class="flyout-section">
+            <div class="flyout-section-title">Suggested Actions</div>
+            <div class="suggested-action">→ Open in Manual Workbench to compare candidates</div>
+            <div class="suggested-action" style="background:#FEF3C7; border-color:#fce08a; color:var(--warning);">→ Consult legacy system documentation for MUL-2800 parent</div>
+          </div>
+
+          <!-- Review History -->
+          <div class="flyout-section">
+            <div class="flyout-section-title">Review History</div>
+            <div class="history-item">
+              <div class="history-dot green"></div>
+              <div>
+                <div class="history-user">System <span class="history-time">· 09:18 today</span></div>
+                <div class="history-action">Flagged as ambiguous — 2 candidates within 5pp threshold</div>
+              </div>
+            </div>
+            <div class="history-item">
+              <div class="history-dot"></div>
+              <div>
+                <div class="history-user">System <span class="history-time">· 09:18 today</span></div>
+                <div class="history-action">Added to exception queue · Priority: Medium</div>
+              </div>
+            </div>
+            <div class="history-item">
+              <div class="history-dot green"></div>
+              <div>
+                <div class="history-user">Priya Sharma <span class="history-time">· 10:02 today</span></div>
+                <div class="history-action">Assigned to Raj Patel for manual review</div>
+              </div>
+            </div>
+            <div class="history-item">
+              <div class="history-dot"></div>
+              <div>
+                <div class="history-user">Raj Patel <span class="history-time">· 10:05 today</span></div>
+                <div class="history-action">Opened in workbench — review in progress</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="flyout-actions">
+          <button class="btn btn-primary" style="width:100%; justify-content:center;">🔧 Open in Workbench</button>
+          <button class="btn btn-ghost" style="width:100%; justify-content:center;">⬆ Escalate to Manager</button>
+        </div>
+      </div><!-- /flyout -->
+
+    </div><!-- /content-area -->
+
+  </div><!-- /main -->
+
+</div><!-- /app-shell -->
+
+</body>
+</html>

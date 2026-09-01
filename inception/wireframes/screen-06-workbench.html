@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 06 — Manual Mapping Workbench | Azets ALM</title>
+<style>
+  :root {
+    --brand-500: #26CF7C;
+    --ink-950: #0F0F0F;
+    --ink-800: #2B2B2B;
+    --ink-600: #5D625F;
+    --ink-400: #939A96;
+    --canvas: #FFFFFF;
+    --mist-50: #F7F8F7;
+    --mist-100: #EEF1EF;
+    --border: #D9DEDB;
+    --danger: #B42318;
+    --success: #16794D;
+    --warning: #9A6400;
+    --brand-100: #DDF8EA;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+    --radius-control: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: var(--mist-50);
+    color: var(--ink-800);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Screen Label Bar ── */
+  .screen-label-bar {
+    background: var(--ink-950);
+    color: var(--brand-500);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 6px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .screen-label-bar span { color: var(--ink-400); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  /* ── Topbar ── */
+  .topbar {
+    height: 64px;
+    background: var(--ink-950);
+    border-bottom: 3px solid var(--brand-500);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 20px;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+  .topbar-logo {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--canvas);
+    letter-spacing: -.02em;
+  }
+  .topbar-logo em { color: var(--brand-500); font-style: normal; }
+  .topbar-divider { width: 1px; height: 28px; background: #2a2a2a; }
+  .topbar-title { color: var(--ink-400); font-size: 13px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .topbar-firm-badge {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: var(--ink-400);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+  }
+  .topbar-firm-badge strong { color: var(--canvas); }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--brand-500);
+    color: var(--ink-950);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+
+  /* ── App Shell ── */
+  .app-shell {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px;
+    background: var(--ink-950);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    overflow-y: auto;
+    border-right: 1px solid #1a1a1a;
+  }
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #404040;
+    padding: 12px 20px 6px;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: var(--ink-400);
+    font-size: 13px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all .15s;
+    text-decoration: none;
+  }
+  .sidebar-item:hover { color: var(--canvas); background: rgba(255,255,255,.04); }
+  .sidebar-item.active {
+    color: var(--brand-500);
+    background: rgba(38,207,124,.1);
+    border-left-color: var(--brand-500);
+    font-weight: 600;
+  }
+  .sidebar-item .icon { font-size: 15px; width: 18px; text-align: center; }
+  .sidebar-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: var(--radius-pill);
+    min-width: 18px;
+    text-align: center;
+  }
+  .sidebar-badge.green { background: var(--brand-500); color: var(--ink-950); }
+
+  /* ── Main Area ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--mist-50);
+  }
+
+  /* ── Page Header ── */
+  .page-header {
+    background: var(--canvas);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .page-header h1 { font-size: 20px; font-weight: 700; color: var(--ink-950); }
+  .page-header-sub { color: var(--ink-600); font-size: 13px; }
+  .progress-pill {
+    margin-left: auto;
+    background: var(--brand-100);
+    color: var(--success);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid #b3ecd3;
+  }
+  .session-stat {
+    background: var(--mist-100);
+    border: 1px solid var(--border);
+    color: var(--ink-600);
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+  }
+  .session-stat strong { color: var(--ink-800); }
+
+  /* ── Workbench Layout ── */
+  .workbench {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    gap: 0;
+  }
+
+  /* ── Left Panel: Review Queue ── */
+  .review-queue {
+    width: 380px;
+    flex-shrink: 0;
+    background: var(--canvas);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-950);
+  }
+  .count-chip {
+    background: var(--mist-100);
+    color: var(--ink-600);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+  }
+  .queue-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .queue-item {
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--canvas);
+  }
+  .queue-item:hover { border-color: #b3ecd3; background: var(--mist-50); }
+  .queue-item.active {
+    border-color: var(--brand-500);
+    background: rgba(38,207,124,.05);
+    box-shadow: 0 0 0 3px rgba(38,207,124,.12);
+  }
+  .qi-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .account-code-badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--ink-950);
+    color: var(--brand-500);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    font-family: 'Courier New', monospace;
+    letter-spacing: .04em;
+  }
+  .qi-name { font-size: 13px; font-weight: 600; color: var(--ink-800); }
+  .qi-suggestion { font-size: 11px; color: var(--ink-600); margin-bottom: 4px; }
+  .qi-suggestion strong { color: var(--ink-800); }
+  .conf-bar-wrap { display: flex; align-items: center; gap: 6px; }
+  .conf-bar {
+    flex: 1; height: 4px;
+    background: var(--mist-100);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .conf-bar-fill { height: 100%; border-radius: 99px; }
+  .conf-pct { font-size: 11px; font-weight: 700; color: var(--ink-600); }
+  .flag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+  }
+  .flag-chip.ambiguous { background: #FEF3C7; color: var(--warning); }
+  .flag-chip.no-match { background: #FEE2E2; color: var(--danger); }
+  .flag-chip.low-conf { background: #FFF7ED; color: #C2410C; }
+
+  /* ── Right Panel ── */
+  .mapping-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .mapping-panel-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink-950);
+    margin-bottom: 2px;
+  }
+  .mapping-panel-sub { font-size: 13px; color: var(--ink-600); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--canvas);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-950);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .annotation-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--ink-950);
+    color: var(--brand-500);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    letter-spacing: .04em;
+    margin-left: auto;
+  }
+
+  /* ── Account Details Grid ── */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 20px;
+  }
+  .detail-item label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-400);
+    margin-bottom: 3px;
+  }
+  .detail-item value, .detail-item .val {
+    font-size: 13px;
+    color: var(--ink-800);
+    font-weight: 500;
+  }
+  .detail-item .val.code {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: var(--mist-100);
+    padding: 2px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  /* ── AI Suggestion ── */
+  .ai-suggestion-box {
+    background: rgba(38,207,124,.06);
+    border: 1.5px solid rgba(38,207,124,.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 8px;
+  }
+  .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .ai-icon {
+    width: 28px; height: 28px;
+    background: var(--brand-500);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    color: var(--ink-950);
+    font-weight: 800;
+  }
+  .ai-label { font-size: 12px; font-weight: 700; color: var(--ink-600); }
+  .ai-mapping { font-size: 14px; font-weight: 700; color: var(--ink-950); }
+  .ai-conf-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .conf-pill {
+    font-size: 12px; font-weight: 700;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+  .conf-pill.medium { background: #FEF3C7; color: var(--warning); }
+  .conf-pill.high { background: var(--brand-100); color: var(--success); }
+  .conf-pill.low { background: #FEE2E2; color: var(--danger); }
+  .ai-explanation { font-size: 12px; color: var(--ink-600); line-height: 1.5; margin-bottom: 10px; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--brand-500);
+    color: var(--ink-950);
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-600);
+    border: 1.5px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--ink-400); color: var(--ink-800); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+  .btn-danger { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); }
+
+  /* ── Search Section ── */
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-control);
+    overflow: hidden;
+    margin-bottom: 12px;
+    background: var(--canvas);
+  }
+  .search-input-wrap:focus-within { border-color: var(--brand-500); }
+  .search-icon {
+    padding: 0 12px;
+    color: var(--ink-400);
+    font-size: 14px;
+  }
+  .search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 10px 0;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ink-800);
+    background: transparent;
+  }
+  .search-btn {
+    background: var(--brand-500);
+    border: none;
+    color: var(--ink-950);
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: filter .15s;
+  }
+  .search-btn:hover { filter: brightness(1.08); }
+
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--canvas);
+  }
+  .search-result-item:hover { border-color: var(--brand-500); background: rgba(38,207,124,.04); }
+  .search-result-item.selected { border-color: var(--brand-500); background: rgba(38,207,124,.08); }
+  .sr-code {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--ink-950);
+    color: var(--brand-500);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+  }
+  .sr-name { font-size: 12px; color: var(--ink-800); font-weight: 500; flex: 1; }
+  .sr-relevance {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--mist-100);
+    color: var(--ink-600);
+  }
+  .sr-relevance.high { background: var(--brand-100); color: var(--success); }
+  .sr-select-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--brand-500);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-family: inherit;
+  }
+
+  /* ── Selected Mapping ── */
+  .selected-mapping-box {
+    background: var(--mist-50);
+    border: 1.5px solid var(--brand-500);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .mapping-arrow { color: var(--brand-500); font-size: 16px; font-weight: 700; }
+  .mapping-code-pill {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--ink-950);
+    color: var(--brand-500);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+  }
+  .mapping-meta { font-size: 12px; color: var(--ink-600); }
+
+  /* ── Override Reason ── */
+  .override-textarea {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-control);
+    padding: 12px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ink-800);
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color .15s;
+    background: var(--canvas);
+  }
+  .override-textarea:focus { border-color: var(--brand-500); }
+  .override-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-600);
+    margin-bottom: 6px;
+  }
+  .override-label .req { color: var(--danger); }
+
+  /* ── Action Row ── */
+  .action-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .audit-note {
+    font-size: 11px;
+    color: var(--ink-400);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .audit-note .icon { color: var(--brand-500); }
+</style>
+</head>
+<body>
+
+<!-- Screen Label Bar -->
+<div class="screen-label-bar">
+  Screen 06 — Manual Mapping Workbench
+  <span>Epic F1.5 · Features: F1.5.1 · F1.5.2 · F1.5.3 · F1.5.4 · F1.5.5</span>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-logo">Azets <em>ALM</em></div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-title">Account Ledger Migration</div>
+  <div class="topbar-right">
+    <div class="topbar-firm-badge">Session: <strong>A-2024-089</strong></div>
+    <div class="topbar-firm-badge">Firm: <strong>Muldoon &amp; Co</strong></div>
+    <div class="avatar">PS</div>
+  </div>
+</div>
+
+<!-- App Shell -->
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section-label">Migration</div>
+    <a class="sidebar-item" href="#"><span class="icon">📤</span> File Upload</a>
+    <a class="sidebar-item" href="#"><span class="icon">✅</span> Validation</a>
+    <a class="sidebar-item" href="#"><span class="icon">🤖</span> AI Mapping</a>
+    <a class="sidebar-item active" href="#"><span class="icon">🔧</span> Manual Workbench <span class="sidebar-badge">226</span></a>
+    <a class="sidebar-item" href="#"><span class="icon">⚠️</span> Exceptions <span class="sidebar-badge">226</span></a>
+    <a class="sidebar-item" href="#"><span class="icon">🔄</span> Cozone Sync</a>
+    <a class="sidebar-item" href="#"><span class="icon">📋</span> Audit Reports</a>
+    <div class="sidebar-section-label" style="margin-top:12px;">Session</div>
+    <a class="sidebar-item" href="#"><span class="icon">📊</span> Dashboard</a>
+    <a class="sidebar-item" href="#"><span class="icon">⚙️</span> Settings</a>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1>Manual Mapping Workbench</h1>
+        <div class="page-header-sub">Review and manually assign accounts that could not be auto-mapped</div>
+      </div>
+      <div class="session-stat">📦 <strong>226</strong> accounts remaining</div>
+      <div class="progress-pill">✅ 43 mapped this session</div>
+    </div>
+
+    <!-- Workbench -->
+    <div class="workbench">
+
+      <!-- Left: Review Queue -->
+      <div class="review-queue">
+        <div class="panel-header">
+          <div class="panel-title">Review Queue</div>
+          <div class="count-chip">226 items</div>
+          <div style="margin-left:auto; font-size:11px; color:var(--ink-400);">Sorted: Priority ↓</div>
+        </div>
+        <div class="queue-list">
+
+          <!-- Item 1 — Active -->
+          <div class="queue-item active">
+            <div class="qi-top">
+              <span class="account-code-badge">MUL-2847</span>
+              <span class="flag-chip ambiguous">⚠ Ambiguous</span>
+            </div>
+            <div class="qi-name">Suspense Account Legacy</div>
+            <div class="qi-suggestion">AI suggests: <strong>AZT-5510 Suspense Control</strong></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar"><div class="conf-bar-fill" style="width:68%; background:var(--warning);"></div></div>
+              <span class="conf-pct">68%</span>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="queue-item">
+            <div class="qi-top">
+              <span class="account-code-badge">MUL-1104</span>
+              <span class="flag-chip no-match">✕ No Match</span>
+            </div>
+            <div class="qi-name">Directors Loan Account</div>
+            <div class="qi-suggestion">AI suggests: <strong>No suggestion</strong></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar"><div class="conf-bar-fill" style="width:0%; background:var(--danger);"></div></div>
+              <span class="conf-pct" style="color:var(--danger)">0%</span>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="queue-item">
+            <div class="qi-top">
+              <span class="account-code-badge">MUL-3301</span>
+              <span class="flag-chip low-conf">↓ Low Confidence</span>
+            </div>
+            <div class="qi-name">Deferred Revenue Q3</div>
+            <div class="qi-suggestion">AI suggests: <strong>AZT-4401 Deferred Income</strong></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar"><div class="conf-bar-fill" style="width:52%; background:var(--warning);"></div></div>
+              <span class="conf-pct">52%</span>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="queue-item">
+            <div class="qi-top">
+              <span class="account-code-badge">MUL-0088</span>
+              <span class="flag-chip ambiguous">⚠ Ambiguous</span>
+            </div>
+            <div class="qi-name">Intercompany Clearing</div>
+            <div class="qi-suggestion">AI suggests: <strong>AZT-2200 Interco Settlements</strong></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar"><div class="conf-bar-fill" style="width:61%; background:var(--warning);"></div></div>
+              <span class="conf-pct">61%</span>
+            </div>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="queue-item">
+            <div class="qi-top">
+              <span class="account-code-badge">MUL-5512</span>
+              <span class="flag-chip no-match">✕ No Match</span>
+            </div>
+            <div class="qi-name">Goodwill Amortisation Reserve</div>
+            <div class="qi-suggestion">AI suggests: <strong>No suggestion</strong></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar"><div class="conf-bar-fill" style="width:0%; background:var(--danger);"></div></div>
+              <span class="conf-pct" style="color:var(--danger)">0%</span>
+            </div>
+          </div>
+
+          <!-- Item 6 -->
+          <div class="queue-item">
+            <div class="qi-top">
+              <span class="account-code-badge">MUL-7721</span>
+              <span class="flag-chip low-conf">↓ Low Confidence</span>
+            </div>
+            <div class="qi-name">Provision for Doubtful Debts</div>
+            <div class="qi-suggestion">AI suggests: <strong>AZT-3308 Bad Debt Provision</strong></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar"><div class="conf-bar-fill" style="width:48%; background:var(--warning);"></div></div>
+              <span class="conf-pct">48%</span>
+            </div>
+          </div>
+
+          <!-- Item 7 -->
+          <div class="queue-item">
+            <div class="qi-top">
+              <span class="account-code-badge">MUL-4490</span>
+              <span class="flag-chip ambiguous">⚠ Ambiguous</span>
+            </div>
+            <div class="qi-name">Accruals — Payroll Legacy</div>
+            <div class="qi-suggestion">AI suggests: <strong>AZT-4100 Payroll Accrual</strong></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar"><div class="conf-bar-fill" style="width:71%; background:var(--warning);"></div></div>
+              <span class="conf-pct">71%</span>
+            </div>
+          </div>
+
+          <!-- Item 8 -->
+          <div class="queue-item">
+            <div class="qi-top">
+              <span class="account-code-badge">MUL-9003</span>
+              <span class="flag-chip low-conf">↓ Low Confidence</span>
+            </div>
+            <div class="qi-name">Retained Earnings Pre-2020</div>
+            <div class="qi-suggestion">AI suggests: <strong>AZT-6600 Retained Profit</strong></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar"><div class="conf-bar-fill" style="width:55%; background:var(--warning);"></div></div>
+              <span class="conf-pct">55%</span>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /review-queue -->
+
+      <!-- Right: Mapping Panel -->
+      <div class="mapping-panel">
+
+        <div>
+          <div class="mapping-panel-title">Map Account — MUL-2847: Suspense Account Legacy</div>
+          <div class="mapping-panel-sub">Assign this account to its corresponding entry in the Azets Master Ledger</div>
+        </div>
+
+        <!-- Account Details -->
+        <div class="card">
+          <div class="card-title">
+            Legacy Account Details
+          </div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Account Code</label>
+              <div class="val code">MUL-2847</div>
+            </div>
+            <div class="detail-item">
+              <label>Account Name</label>
+              <div class="val">Suspense Account Legacy</div>
+            </div>
+            <div class="detail-item">
+              <label>Account Type</label>
+              <div class="val">Control Account</div>
+            </div>
+            <div class="detail-item">
+              <label>Parent Account</label>
+              <div class="val code">MUL-2800</div>
+            </div>
+            <div class="detail-item" style="grid-column:1/-1;">
+              <label>Description</label>
+              <div class="val">Legacy suspense account used for temporary holding of unallocated transactions prior to 2019 system migration. Contains residual balances.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Suggestion -->
+        <div class="card">
+          <div class="card-title">
+            🤖 AI Suggestion
+          </div>
+          <div class="ai-suggestion-box">
+            <div class="ai-header">
+              <div class="ai-icon">AI</div>
+              <div>
+                <div class="ai-label">Top suggestion</div>
+                <div class="ai-mapping">AZT-5510 — Suspense Control Account</div>
+              </div>
+              <div class="conf-pill medium" style="margin-left:auto;">68% confidence</div>
+            </div>
+            <div class="ai-explanation">
+              Matched on semantic similarity between "Suspense Account Legacy" and "Suspense Control Account". Account type (Control) aligns. However, the legacy description references pre-2019 residual balances which may indicate reclassification is needed. Two alternative mappings exist with similar scores — manual review recommended.
+            </div>
+            <button class="btn btn-primary btn-sm">✓ Accept AI Suggestion</button>
+          </div>
+        </div>
+
+        <!-- Manual Search -->
+        <div class="card">
+          <div class="card-title">
+            Search Azets Master Ledger
+            <span class="annotation-badge">F1.5.3</span>
+          </div>
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="search-input" type="text" value="suspense control" placeholder="Search by code, name, or description…">
+            <button class="search-btn">Search</button>
+          </div>
+          <div style="font-size:11px; color:var(--ink-400); margin-bottom:10px;">5 results · sorted by relevance</div>
+
+          <div class="search-result-item selected">
+            <span class="sr-code">AZT-5510</span>
+            <span class="sr-name">Suspense Control Account</span>
+            <span class="sr-relevance high">94%</span>
+            <button class="sr-select-btn">✓ Selected</button>
+          </div>
+          <div class="search-result-item">
+            <span class="sr-code">AZT-5511</span>
+            <span class="sr-name">Suspense — Inter-Entity</span>
+            <span class="sr-relevance" style="background:#FEF3C7;color:var(--warning);">72%</span>
+            <button class="sr-select-btn">Select</button>
+          </div>
+          <div class="search-result-item">
+            <span class="sr-code">AZT-5500</span>
+            <span class="sr-name">General Suspense Clearing</span>
+            <span class="sr-relevance" style="background:#FEF3C7;color:var(--warning);">65%</span>
+            <button class="sr-select-btn">Select</button>
+          </div>
+          <div class="search-result-item">
+            <span class="sr-code">AZT-2800</span>
+            <span class="sr-name">Control Accounts — Parent</span>
+            <span class="sr-relevance">41%</span>
+            <button class="sr-select-btn">Select</button>
+          </div>
+          <div class="search-result-item">
+            <span class="sr-code">AZT-5520</span>
+            <span class="sr-name">Legacy Migration Holding</span>
+            <span class="sr-relevance" style="background:var(--brand-100);color:var(--success);">88%</span>
+            <button class="sr-select-btn">Select</button>
+          </div>
+        </div>
+
+        <!-- Selected Mapping -->
+        <div class="card">
+          <div class="card-title">
+            Selected Mapping
+            <span class="annotation-badge">F1.5.4</span>
+          </div>
+          <div class="selected-mapping-box">
+            <span class="mapping-code-pill">MUL-2847</span>
+            <span class="mapping-arrow">→</span>
+            <span class="mapping-code-pill">AZT-5510</span>
+            <div>
+              <div style="font-size:13px; font-weight:600; color:var(--ink-800);">Suspense Control Account</div>
+              <div class="mapping-meta">Manual override · Confidence: 94% (user selected)</div>
+            </div>
+            <div class="conf-pill high" style="margin-left:auto;">Override</div>
+          </div>
+        </div>
+
+        <!-- Override Reason -->
+        <div class="card">
+          <div class="card-title">
+            Override Justification
+            <span class="annotation-badge">F1.5.5</span>
+          </div>
+          <label class="override-label">Reason for manual override <span class="req">*required</span></label>
+          <textarea class="override-textarea" placeholder="Describe why the AI suggestion was overridden or why this account requires manual mapping…">AI suggestion AZT-5510 accepted as primary match. Legacy residual balances from pre-2019 migration confirmed as suspense control entries per Finance Manager review.</textarea>
+          <div style="margin-top:8px; font-size:11px; color:var(--ink-400);">This reason will be recorded in the audit trail with your name, timestamp, and session ID.</div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card">
+          <div class="action-row">
+            <button class="btn btn-primary">💾 Save Mapping</button>
+            <button class="btn btn-ghost">⏭ Skip — review later</button>
+            <button class="btn btn-ghost btn-danger" style="border-color:var(--danger); color:var(--danger);">⬆ Escalate</button>
+          </div>
+          <div style="margin-top:12px;" class="audit-note">
+            <span class="icon">🔒</span>
+            Override will be logged with timestamp and user for audit trail (F1.5.5) · Session A-2024-089 · User: Priya Sharma
+          </div>
+        </div>
+
+      </div><!-- /mapping-panel -->
+
+    </div><!-- /workbench -->
+
+  </div><!-- /main -->
+
+</div><!-- /app-shell -->
+
+</body>
+</html>

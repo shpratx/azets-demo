@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Screen 16 — User Administration | Azets ALM</title>
+<style>
+  :root {
+    --brand-500:#26CF7C; --brand-600:#1CAE68; --brand-100:#DDF8EA;
+    --ink-950:#0F0F0F; --ink-800:#2B2B2B; --ink-600:#5D625F;
+    --ink-400:#939A96; --canvas:#FFFFFF; --mist-50:#F7F8F7;
+    --mist-100:#EEF1EF; --border:#D9DEDB; --danger:#B42318;
+    --success:#16794D; --warning:#9A6400;
+    --radius-card:18px; --radius-pill:999px; --radius-control:10px;
+    --shadow-1:0 10px 35px rgba(15,15,15,.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif; background: #1a1a1a; }
+
+  /* Screen label */
+  .screen-label {
+    background: var(--ink-950); color: #fff;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; padding: 6px 16px; display: flex;
+    align-items: center; gap: 10px;
+  }
+  .screen-label .badge {
+    background: var(--brand-500); color: var(--ink-950);
+    border-radius: var(--radius-pill); padding: 2px 8px; font-size: 10px;
+  }
+
+  .shell { display: flex; flex-direction: column; height: calc(100vh - 28px); }
+
+  /* Top bar */
+  .topbar {
+    height: 64px; background: var(--ink-950);
+    border-bottom: 3px solid var(--brand-500);
+    display: flex; align-items: center;
+    padding: 0 24px; gap: 16px; flex-shrink: 0;
+  }
+  .logo { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+  .logo span { color: var(--brand-500); }
+  .topbar-spacer { flex: 1; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .notif-btn {
+    position: relative; background: none; border: none; cursor: pointer;
+    color: var(--ink-400); font-size: 20px; padding: 6px;
+  }
+  .notif-badge {
+    position: absolute; top: 4px; right: 4px;
+    background: var(--danger); border-radius: 50%;
+    width: 8px; height: 8px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--brand-500); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--ink-950);
+  }
+  .user-name { color: #fff; font-size: 13px; font-weight: 600; }
+
+  .body-area { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px; background: var(--ink-950);
+    flex-shrink: 0; overflow-y: auto; padding: 16px 0;
+  }
+  .nav-section-label {
+    color: var(--ink-400); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; padding: 8px 20px 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px; color: var(--ink-400);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .nav-item.active {
+    color: #fff; border-left-color: var(--brand-500);
+    background: rgba(38,207,124,.1);
+  }
+  .nav-item .icon { font-size: 15px; width: 18px; text-align: center; }
+
+  /* Main */
+  .main {
+    flex: 1; background: var(--mist-50);
+    overflow-y: auto; padding: 28px 32px;
+  }
+
+  /* Page header */
+  .page-header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; margin-bottom: 22px;
+  }
+  .page-title { font-size: 22px; font-weight: 800; color: var(--ink-950); }
+  .page-sub { color: var(--ink-600); font-size: 13px; margin-top: 3px; }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--brand-500); border: none;
+    border-radius: var(--radius-control); padding: 10px 20px;
+    font-size: 13px; font-weight: 700; color: var(--ink-950);
+    cursor: pointer; font-family: inherit; display: flex;
+    align-items: center; gap: 6px;
+  }
+  .btn-ghost {
+    background: none; border: 1.5px solid var(--border);
+    border-radius: var(--radius-control); padding: 7px 14px;
+    font-size: 12px; font-weight: 600; color: var(--ink-600);
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-ghost:hover { border-color: var(--ink-600); color: var(--ink-950); }
+  .btn-danger-ghost {
+    background: none; border: 1.5px solid #FEE2E2;
+    border-radius: var(--radius-control); padding: 5px 10px;
+    font-size: 11px; font-weight: 600; color: var(--danger);
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-danger-ghost:hover { background: #FEE2E2; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+  .stat-card {
+    background: var(--canvas); border-radius: var(--radius-card);
+    padding: 16px 20px; box-shadow: var(--shadow-1);
+    border: 1px solid var(--border); display: flex;
+    align-items: center; gap: 14px;
+  }
+  .stat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .stat-label { font-size: 12px; color: var(--ink-400); font-weight: 500; }
+  .stat-val { font-size: 24px; font-weight: 800; color: var(--ink-950); line-height: 1; }
+
+  /* Tab nav */
+  .tab-nav {
+    display: flex; gap: 2px; background: var(--canvas);
+    border: 1px solid var(--border); border-radius: var(--radius-control);
+    padding: 4px; margin-bottom: 18px; width: fit-content;
+  }
+  .tab-btn {
+    background: none; border: none; border-radius: 8px;
+    padding: 8px 18px; font-size: 13px; font-weight: 600;
+    color: var(--ink-600); cursor: pointer; font-family: inherit;
+  }
+  .tab-btn.active {
+    background: var(--ink-950); color: #fff;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex; gap: 10px; margin-bottom: 16px; align-items: center;
+  }
+  .search-input-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--canvas); border: 1.5px solid var(--border);
+    border-radius: var(--radius-control); padding: 8px 14px;
+    flex: 1; max-width: 320px;
+  }
+  .search-input-wrap input {
+    border: none; background: none; outline: none;
+    font-size: 13px; font-family: inherit; color: var(--ink-800); flex: 1;
+  }
+  .search-input-wrap input::placeholder { color: var(--ink-400); }
+  .filter-select {
+    background: var(--canvas); border: 1.5px solid var(--border);
+    border-radius: var(--radius-control); padding: 8px 12px;
+    font-size: 13px; font-family: inherit; color: var(--ink-600);
+    cursor: pointer; outline: none;
+  }
+  .filter-count {
+    font-size: 12px; color: var(--ink-400); margin-left: auto;
+  }
+
+  /* Users table */
+  .table-wrap {
+    background: var(--canvas); border-radius: var(--radius-card);
+    box-shadow: var(--shadow-1); border: 1px solid var(--border);
+    overflow: hidden; margin-bottom: 24px;
+  }
+  .users-table { width: 100%; border-collapse: collapse; }
+  .users-table th {
+    font-size: 11px; font-weight: 700; color: var(--ink-400);
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 12px 14px; text-align: left;
+    background: var(--mist-50); border-bottom: 1px solid var(--border);
+  }
+  .users-table td {
+    padding: 12px 14px; font-size: 13px; color: var(--ink-800);
+    border-bottom: 1px solid var(--mist-100);
+    vertical-align: middle;
+  }
+  .users-table tr:last-child td { border-bottom: none; }
+  .users-table tr:hover td { background: var(--mist-50); }
+
+  /* User cell */
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .user-av {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .user-av-name { font-weight: 600; color: var(--ink-950); font-size: 13px; }
+  .user-av-email { font-size: 11px; color: var(--ink-400); }
+
+  /* Role chips */
+  .chip {
+    display: inline-block; padding: 3px 10px;
+    border-radius: var(--radius-pill); font-size: 11px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .chip-fm { background: var(--brand-100); color: #15803D; }
+  .chip-ac { background: var(--mist-100); color: var(--ink-600); }
+  .chip-au { background: #EDE9FE; color: #7C3AED; }
+  .chip-ad { background: var(--ink-950); color: #fff; }
+
+  /* Status */
+  .status-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }
+  .status-dot::before {
+    content: ''; display: inline-block;
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .status-active { color: var(--success); }
+  .status-active::before { background: var(--success); }
+  .status-suspended { color: var(--danger); }
+  .status-suspended::before { background: var(--danger); }
+  .status-pending { color: var(--warning); }
+  .status-pending::before { background: #FBBF24; }
+
+  /* Actions */
+  .action-btns { display: flex; gap: 6px; }
+
+  /* Annotation badge */
+  .ann-badge {
+    background: var(--ink-950); color: var(--brand-500);
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: var(--radius-pill); letter-spacing: .04em;
+    border: 1px solid rgba(38,207,124,.3);
+  }
+  .section-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--ink-950); }
+
+  /* Two col */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+  /* Permissions matrix */
+  .perm-table {
+    background: var(--canvas); border-radius: var(--radius-card);
+    box-shadow: var(--shadow-1); border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .perm-table table { width: 100%; border-collapse: collapse; }
+  .perm-table th {
+    font-size: 11px; font-weight: 700; color: var(--ink-400);
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 10px 10px; text-align: center;
+    background: var(--mist-50); border-bottom: 1px solid var(--border);
+  }
+  .perm-table th:first-child { text-align: left; padding-left: 16px; }
+  .perm-table td {
+    padding: 9px 10px; font-size: 12px; color: var(--ink-800);
+    border-bottom: 1px solid var(--mist-100); text-align: center;
+    vertical-align: middle;
+  }
+  .perm-table tr:last-child td { border-bottom: none; }
+  .perm-table td:first-child {
+    text-align: left; padding-left: 16px;
+    font-weight: 600; color: var(--ink-800);
+  }
+  .perm-table tr:hover td { background: var(--mist-50); }
+  .tick { color: var(--success); font-size: 15px; }
+  .cross { color: var(--danger); font-size: 14px; opacity: .6; }
+  .perm-role-header {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+
+  /* Sessions card */
+  .sessions-card {
+    background: var(--canvas); border-radius: var(--radius-card);
+    box-shadow: var(--shadow-1); border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .session-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-bottom: 1px solid var(--mist-100);
+  }
+  .session-item:last-child { border-bottom: none; }
+  .session-av {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .session-info { flex: 1; }
+  .session-name { font-size: 13px; font-weight: 600; color: var(--ink-950); }
+  .session-meta { font-size: 11px; color: var(--ink-400); margin-top: 2px; }
+  .session-duration {
+    font-size: 12px; font-weight: 600; color: var(--ink-600);
+    text-align: right; margin-right: 12px; white-space: nowrap;
+  }
+  .session-duration span { display: block; font-size: 10px; color: var(--ink-400); font-weight: 400; }
+
+  /* Card base */
+  .card {
+    background: var(--canvas); border-radius: var(--radius-card);
+    padding: 20px 22px; box-shadow: var(--shadow-1);
+    border: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- Screen label -->
+<div class="screen-label">
+  <span class="badge">Screen 16</span>
+  User / RBAC Administration
+  <span style="color:var(--ink-400);">|</span>
+  Epic F0.2 — User Auth · Role Based Access · Session Management · Fine-Grained Permissions · Audit Logging
+</div>
+
+<div class="shell">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="logo">Azets <span>ALM</span></div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-right">
+      <button class="notif-btn">🔔<span class="notif-badge"></span></button>
+      <div class="avatar">PS</div>
+      <span class="user-name">Priya Sharma</span>
+    </div>
+  </div>
+
+  <div class="body-area">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item"><span class="icon">⊞</span>Dashboard</div>
+      <div class="nav-item"><span class="icon">↑</span>Upload File</div>
+      <div class="nav-item"><span class="icon">⚡</span>Run Mapping</div>
+      <div class="nav-item"><span class="icon">☑</span>Review Queue</div>
+
+      <div class="nav-section-label">Management</div>
+      <div class="nav-item"><span class="icon">📋</span>Sessions</div>
+      <div class="nav-item"><span class="icon">🔗</span>Cozone Sync</div>
+      <div class="nav-item"><span class="icon">📊</span>Analytics</div>
+      <div class="nav-item"><span class="icon">📄</span>Reports</div>
+
+      <div class="nav-section-label">Admin</div>
+      <div class="nav-item active"><span class="icon">👥</span>Users</div>
+      <div class="nav-item"><span class="icon">⚙</span>Settings</div>
+      <div class="nav-item"><span class="icon">❓</span>Help & Support</div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div>
+          <div class="page-title">User Administration</div>
+          <div class="page-sub">Manage users, roles and access permissions</div>
+        </div>
+        <button class="btn-primary">+ Invite User</button>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--brand-100)">👥</div>
+          <div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-val">24</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE">🖥</div>
+          <div>
+            <div class="stat-label">Active Sessions</div>
+            <div class="stat-val" style="color:var(--success)">8</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--mist-100)">📋</div>
+          <div>
+            <div class="stat-label">Last Audit</div>
+            <div class="stat-val" style="font-size:18px">2h ago</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab nav -->
+      <div class="tab-nav">
+        <button class="tab-btn active">Users</button>
+        <button class="tab-btn">Roles & Permissions</button>
+        <button class="tab-btn">Sessions</button>
+        <button class="tab-btn">Access Audit Log</button>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="search-input-wrap">
+          <span style="color:var(--ink-400)">🔍</span>
+          <input type="text" placeholder="Search by name or email…"/>
+        </div>
+        <select class="filter-select">
+          <option>All Roles</option>
+          <option>Finance Manager</option>
+          <option>Accountant</option>
+          <option>Auditor</option>
+          <option>Administrator</option>
+        </select>
+        <select class="filter-select">
+          <option>All Status</option>
+          <option>Active</option>
+          <option>Suspended</option>
+          <option>Pending</option>
+        </select>
+        <span class="filter-count">Showing 10 of 24 users</span>
+      </div>
+
+      <!-- Users table -->
+      <div class="table-wrap" style="margin-bottom:24px">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Organisation</th>
+              <th>Status</th>
+              <th>Last Login</th>
+              <th>Sessions</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#DDF8EA;color:#15803D">PS</div>
+                  <div><div class="user-av-name">Priya Sharma</div><div class="user-av-email">priya.sharma@azets.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-fm">Finance Manager</span></td>
+              <td>Azets</td>
+              <td><span class="status-dot status-active">Active</span></td>
+              <td style="color:var(--ink-400);font-size:12px">Today, 09:14</td>
+              <td style="font-weight:700;text-align:center">14</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#EDE9FE;color:#7C3AED">RP</div>
+                  <div><div class="user-av-name">Raj Patel</div><div class="user-av-email">raj.patel@azets.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-ac">Accountant</span></td>
+              <td>Azets</td>
+              <td><span class="status-dot status-active">Active</span></td>
+              <td style="color:var(--ink-400);font-size:12px">Today, 08:47</td>
+              <td style="font-weight:700;text-align:center">9</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#EDE9FE;color:#7C3AED">SM</div>
+                  <div><div class="user-av-name">Sarah Mitchell</div><div class="user-av-email">sarah.mitchell@azets.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-au">Auditor</span></td>
+              <td>Azets</td>
+              <td><span class="status-dot status-active">Active</span></td>
+              <td style="color:var(--ink-400);font-size:12px">Yesterday, 17:03</td>
+              <td style="font-weight:700;text-align:center">7</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#EFF6FF;color:#2563EB">JM</div>
+                  <div><div class="user-av-name">James Muldoon</div><div class="user-av-email">j.muldoon@muldoon-co.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-ac">Accountant</span></td>
+              <td>Muldoon & Co</td>
+              <td><span class="status-dot status-active">Active</span></td>
+              <td style="color:var(--ink-400);font-size:12px">Today, 07:55</td>
+              <td style="font-weight:700;text-align:center">11</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#FEE2E2;color:#B42318">TR</div>
+                  <div><div class="user-av-name">Tom Reeves</div><div class="user-av-email">t.reeves@capita-group.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-ac">Accountant</span></td>
+              <td>Capita Group</td>
+              <td><span class="status-dot status-active">Active</span></td>
+              <td style="color:var(--ink-400);font-size:12px">31 Aug, 14:22</td>
+              <td style="font-weight:700;text-align:center">6</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:var(--ink-950);color:#fff">AK</div>
+                  <div><div class="user-av-name">Amara Khan</div><div class="user-av-email">amara.khan@azets.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-ad">Administrator</span></td>
+              <td>Azets</td>
+              <td><span class="status-dot status-active">Active</span></td>
+              <td style="color:var(--ink-400);font-size:12px">Today, 09:01</td>
+              <td style="font-weight:700;text-align:center">3</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost" style="color:var(--ink-400)" disabled>Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#FEF3C7;color:#92400E">LC</div>
+                  <div><div class="user-av-name">Lucy Chen</div><div class="user-av-email">lucy.chen@bridgepoint-ma.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-fm">Finance Manager</span></td>
+              <td>Bridgepoint M&A</td>
+              <td><span class="status-dot status-active">Active</span></td>
+              <td style="color:var(--ink-400);font-size:12px">29 Aug, 11:10</td>
+              <td style="font-weight:700;text-align:center">5</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#DCFCE7;color:#15803D">DO</div>
+                  <div><div class="user-av-name">David O'Brien</div><div class="user-av-email">d.obrien@muldoon-co.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-au">Auditor</span></td>
+              <td>Muldoon & Co</td>
+              <td><span class="status-dot status-pending">Pending</span></td>
+              <td style="color:var(--ink-400);font-size:12px">Never</td>
+              <td style="font-weight:700;text-align:center;color:var(--ink-400)">0</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost" style="color:var(--brand-600);border-color:var(--brand-100)">Resend invite</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#F3F4F6;color:var(--ink-600)">NW</div>
+                  <div><div class="user-av-name">Nina Walsh</div><div class="user-av-email">n.walsh@capita-group.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-ac">Accountant</span></td>
+              <td>Capita Group</td>
+              <td><span class="status-dot status-suspended">Suspended</span></td>
+              <td style="color:var(--ink-400);font-size:12px">12 Aug, 09:30</td>
+              <td style="font-weight:700;text-align:center;color:var(--ink-400)">2</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost" style="color:var(--success);border-color:#DCFCE7">Reinstate</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av" style="background:#EDE9FE;color:#7C3AED">MF</div>
+                  <div><div class="user-av-name">Marcus Ford</div><div class="user-av-email">m.ford@bridgepoint-ma.com</div></div>
+                </div>
+              </td>
+              <td><span class="chip chip-ac">Accountant</span></td>
+              <td>Bridgepoint M&A</td>
+              <td><span class="status-dot status-active">Active</span></td>
+              <td style="color:var(--ink-400);font-size:12px">Today, 08:12</td>
+              <td style="font-weight:700;text-align:center">4</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-ghost">Edit</button>
+                  <button class="btn-ghost">Suspend</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Permissions matrix + Active sessions -->
+      <div class="two-col">
+
+        <!-- Permissions matrix -->
+        <div>
+          <div class="section-header">
+            <div class="section-title">Role Permissions Matrix</div>
+            <span class="ann-badge">F0.2.4</span>
+          </div>
+          <div class="perm-table">
+            <table>
+              <thead>
+                <tr>
+                  <th style="min-width:130px">Permission</th>
+                  <th>
+                    <div class="perm-role-header">
+                      <span class="chip chip-fm" style="font-size:9px">Finance Mgr</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="perm-role-header">
+                      <span class="chip chip-ac" style="font-size:9px">Accountant</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="perm-role-header">
+                      <span class="chip chip-au" style="font-size:9px">Auditor</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="perm-role-header">
+                      <span class="chip chip-ad" style="font-size:9px">Admin</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Upload Files</td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="tick">✓</span></td>
+                </tr>
+                <tr>
+                  <td>Run Mapping</td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="tick">✓</span></td>
+                </tr>
+                <tr>
+                  <td>Review Queue</td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                </tr>
+                <tr>
+                  <td>Approve Override</td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="tick">✓</span></td>
+                </tr>
+                <tr>
+                  <td>Sync Cozone</td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="tick">✓</span></td>
+                </tr>
+                <tr>
+                  <td>Generate Report</td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                </tr>
+                <tr>
+                  <td>View History</td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                  <td><span class="tick">✓</span></td>
+                </tr>
+                <tr>
+                  <td>Manage Users</td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="cross">✗</span></td>
+                  <td><span class="tick">✓</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Active sessions -->
+        <div>
+          <div class="section-header">
+            <div class="section-title">Active Sessions</div>
+            <span class="ann-badge">F0.2.3</span>
+            <span class="ann-badge" style="margin-left:4px">F0.2.5</span>
+          </div>
+          <div class="sessions-card">
+            <div class="session-item">
+              <div class="session-av" style="background:#DDF8EA;color:#15803D">PS</div>
+              <div class="session-info">
+                <div class="session-name">Priya Sharma</div>
+                <div class="session-meta">Chrome 127 · macOS · 185.xx.xx.12 · Login 09:14</div>
+              </div>
+              <div class="session-duration">2h 31m<span>Duration</span></div>
+              <button class="btn-danger-ghost">Revoke</button>
+            </div>
+            <div class="session-item">
+              <div class="session-av" style="background:#EFF6FF;color:#2563EB">JM</div>
+              <div class="session-info">
+                <div class="session-name">James Muldoon</div>
+                <div class="session-meta">Edge 127 · Windows 11 · 92.xx.xx.47 · Login 07:55</div>
+              </div>
+              <div class="session-duration">3h 50m<span>Duration</span></div>
+              <button class="btn-danger-ghost">Revoke</button>
+            </div>
+            <div class="session-item">
+              <div class="session-av" style="background:var(--ink-950);color:#fff">AK</div>
+              <div class="session-info">
+                <div class="session-name">Amara Khan</div>
+                <div class="session-meta">Chrome 127 · macOS · 185.xx.xx.08 · Login 09:01</div>
+              </div>
+              <div class="session-duration">2h 44m<span>Duration</span></div>
+              <button class="btn-danger-ghost">Revoke</button>
+            </div>
+            <div class="session-item">
+              <div class="session-av" style="background:#EDE9FE;color:#7C3AED">RP</div>
+              <div class="session-info">
+                <div class="session-name">Raj Patel</div>
+                <div class="session-meta">Firefox 128 · Windows 11 · 217.xx.xx.33 · Login 08:47</div>
+              </div>
+              <div class="session-duration">3h 08m<span>Duration</span></div>
+              <button class="btn-danger-ghost">Revoke</button>
+            </div>
+            <div class="session-item">
+              <div class="session-av" style="background:#FEE2E2;color:#B42318">MF</div>
+              <div class="session-info">
+                <div class="session-name">Marcus Ford</div>
+                <div class="session-meta">Safari 18 · macOS · 81.xx.xx.119 · Login 08:12</div>
+              </div>
+              <div class="session-duration">3h 33m<span>Duration</span></div>
+              <button class="btn-danger-ghost">Revoke</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;padding:12px 16px;background:var(--canvas);border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow-1)">
+            <div style="font-size:12px;font-weight:700;color:var(--ink-950);margin-bottom:6px">Access Audit Log <span class="ann-badge" style="margin-left:6px">F0.2.5</span></div>
+            <div style="font-size:11px;color:var(--ink-400);line-height:1.7">
+              <div>⚑ <strong style="color:var(--ink-800)">AK</strong> granted Finance Manager role to <strong style="color:var(--ink-800)">Lucy Chen</strong> · 28 Aug 14:20</div>
+              <div>⚑ <strong style="color:var(--ink-800)">AK</strong> suspended <strong style="color:var(--ink-800)">Nina Walsh</strong> · 12 Aug 09:44</div>
+              <div>⚑ <strong style="color:var(--ink-800)">AK</strong> invited <strong style="color:var(--ink-800)">David O'Brien</strong> as Auditor · 30 Aug 10:05</div>
+            </div>
+            <div style="margin-top:8px">
+              <button class="btn-ghost" style="font-size:11px;padding:5px 12px">View full audit log →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

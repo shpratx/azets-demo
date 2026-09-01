@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Screen 03 — Upload Legacy Accounts | Azets ALM Tool</title>
+  <style>
+    /* ── Design Tokens ─────────────────────────────────────────── */
+    :root {
+      --brand-500: #26CF7C;
+      --brand-100: #DDF8EA;
+      --ink-950:   #0F0F0F;
+      --ink-800:   #2B2B2B;
+      --ink-600:   #5D625F;
+      --ink-400:   #939A96;
+      --canvas:    #FFFFFF;
+      --mist-50:   #F7F8F7;
+      --mist-100:  #EEF1EF;
+      --border:    #D9DEDB;
+      --danger:    #B42318;
+      --success:   #16794D;
+      --warning:   #9A6400;
+      --radius-card:    18px;
+      --radius-pill:    999px;
+      --radius-control: 10px;
+      --shadow-1: 0 1px 4px rgba(0,0,0,.07), 0 2px 10px rgba(0,0,0,.05);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: var(--mist-50);
+      color: var(--ink-800);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Screen Label Bar ──────────────────────────────────────── */
+    .screen-label-bar {
+      background: #1a1a2e;
+      color: #a0aec0;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 6px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid #2d3748;
+    }
+    .screen-label-bar .badge {
+      background: var(--brand-500);
+      color: var(--ink-950);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .screen-label-bar .epic-badge {
+      background: rgba(38,207,124,.15);
+      color: var(--brand-500);
+      border: 1px solid rgba(38,207,124,.3);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 10px;
+    }
+    .feature-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .feature-tag {
+      background: rgba(255,255,255,.06);
+      color: #718096;
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 10px;
+    }
+
+    /* ── App Shell ─────────────────────────────────────────────── */
+    .app-shell { display: flex; flex-direction: column; height: calc(100vh - 34px); }
+
+    /* Top Bar */
+    .topbar {
+      background: var(--ink-950);
+      border-bottom: 2px solid var(--brand-500);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: #fff;
+      font-size: 15px;
+      letter-spacing: -.01em;
+    }
+    .topbar-logo-mark {
+      width: 28px; height: 28px;
+      background: var(--brand-500);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: var(--ink-950);
+    }
+    .topbar-divider { width: 1px; height: 24px; background: rgba(255,255,255,.1); }
+    .topbar-context { color: rgba(255,255,255,.45); font-size: 13px; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .topbar-avatar {
+      width: 32px; height: 32px;
+      background: var(--brand-500);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--ink-950);
+    }
+    .topbar-notif {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.5);
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    /* Body */
+    .app-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--ink-950);
+      border-right: 1px solid rgba(255,255,255,.07);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.25);
+      padding: 18px 16px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      color: rgba(255,255,255,.5);
+      font-size: 13.5px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all .15s;
+      text-decoration: none;
+      margin: 1px 0;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.04); color: rgba(255,255,255,.8); }
+    .nav-item.active {
+      border-left-color: var(--brand-500);
+      background: rgba(38,207,124,.1);
+      color: #fff;
+      font-weight: 600;
+    }
+    .nav-item .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(38,207,124,.2);
+      color: var(--brand-500);
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px;
+      border-top: 1px solid rgba(255,255,255,.07);
+    }
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-user-avatar {
+      width: 32px; height: 32px;
+      background: var(--brand-500);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--ink-950);
+      flex-shrink: 0;
+    }
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name { color: rgba(255,255,255,.85); font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { color: rgba(255,255,255,.35); font-size: 11px; }
+
+    /* Main */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--mist-50);
+    }
+
+    /* ── Page ──────────────────────────────────────────────────── */
+    .page-header {
+      padding: 32px 36px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--canvas);
+    }
+    .breadcrumb {
+      font-size: 12px;
+      color: var(--ink-400);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .breadcrumb span { color: var(--ink-600); }
+    .page-title { font-size: 22px; font-weight: 700; color: var(--ink-950); letter-spacing: -.02em; }
+    .page-subtitle { font-size: 14px; color: var(--ink-600); margin-top: 4px; }
+
+    .page-content {
+      padding: 28px 36px 48px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── Cards ─────────────────────────────────────────────────── */
+    .card {
+      background: var(--canvas);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-1);
+      border: 1px solid var(--border);
+      padding: 24px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink-950);
+      margin-bottom: 4px;
+    }
+    .card-subtitle {
+      font-size: 12.5px;
+      color: var(--ink-400);
+      margin-bottom: 20px;
+    }
+
+    /* ── Dropzone ──────────────────────────────────────────────── */
+    .dropzone {
+      border: 2px dashed var(--ink-950);
+      border-radius: 24px;
+      padding: 40px 32px;
+      text-align: center;
+      background: var(--mist-50);
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .dropzone-icon {
+      font-size: 36px;
+      color: var(--brand-500);
+      margin-bottom: 14px;
+    }
+    .dropzone-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink-950);
+      margin-bottom: 6px;
+    }
+    .dropzone-sub {
+      font-size: 13px;
+      color: var(--ink-400);
+      margin-bottom: 22px;
+    }
+    .dropzone-actions { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    /* ── Buttons ───────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: var(--radius-pill);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all .15s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--brand-500);
+      color: var(--ink-950);
+    }
+    .btn-primary:hover { background: #1fb56b; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink-800);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--ink-400); background: var(--mist-50); }
+    .btn-sm { padding: 6px 14px; font-size: 12.5px; }
+    .btn-full { width: 100%; justify-content: center; padding: 12px 20px; font-size: 14px; }
+    .btn-danger-ghost {
+      background: transparent;
+      color: var(--danger);
+      border: 1.5px solid rgba(180,35,24,.2);
+    }
+
+    /* ── Annotation Badges ─────────────────────────────────────── */
+    .annot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #1a1a2e;
+      color: var(--brand-500);
+      border: 1px solid rgba(38,207,124,.3);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      white-space: nowrap;
+    }
+    .annot-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+    /* ── Format Requirements ───────────────────────────────────── */
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .format-box {
+      background: var(--mist-50);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .format-box-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .format-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #fff;
+    }
+    .format-icon.csv { background: #16794D; }
+    .format-icon.xlsx { background: #185B00; }
+    .format-icon.xml { background: #9A6400; }
+    .format-name { font-size: 13px; font-weight: 700; color: var(--ink-950); }
+    .format-col-list { list-style: none; }
+    .format-col-list li {
+      font-size: 11.5px;
+      color: var(--ink-600);
+      padding: 3px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .format-col-list li:last-child { border-bottom: none; }
+    .format-col-list li::before {
+      content: '•';
+      color: var(--brand-500);
+      font-size: 10px;
+    }
+    .required-tag {
+      margin-left: auto;
+      font-size: 9px;
+      background: var(--brand-100);
+      color: var(--success);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-weight: 700;
+    }
+
+    /* ── Form ──────────────────────────────────────────────────── */
+    .form-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-950);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-600);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    label .req { color: var(--danger); }
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-control);
+      font-family: inherit;
+      font-size: 13.5px;
+      color: var(--ink-800);
+      background: var(--canvas);
+      outline: none;
+      transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--brand-500);
+      box-shadow: 0 0 0 3px rgba(38,207,124,.12);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ── Validation Callout ────────────────────────────────────── */
+    .callout {
+      background: var(--brand-100);
+      border: 1px solid rgba(38,207,124,.3);
+      border-left: 4px solid var(--brand-500);
+      border-radius: var(--radius-control);
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    .callout-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--success);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .callout ul { list-style: none; }
+    .callout ul li {
+      font-size: 12.5px;
+      color: var(--ink-600);
+      padding: 3px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .callout ul li::before {
+      content: '✓';
+      color: var(--brand-500);
+      font-weight: 700;
+      font-size: 11px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Right Column ──────────────────────────────────────────── */
+    .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+    .info-card {
+      background: var(--canvas);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-1);
+      border: 1px solid var(--border);
+      padding: 20px;
+    }
+    .info-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-950);
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .info-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--mist-100);
+      font-size: 12.5px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row-label { color: var(--ink-400); flex: 0 0 110px; }
+    .info-row-value { color: var(--ink-800); font-weight: 500; }
+
+    .recent-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--mist-100);
+    }
+    .recent-item:last-child { border-bottom: none; }
+    .recent-item-icon {
+      width: 32px; height: 32px;
+      background: var(--mist-50);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .recent-item-name { font-size: 12.5px; font-weight: 600; color: var(--ink-800); }
+    .recent-item-meta { font-size: 11px; color: var(--ink-400); }
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: var(--radius-pill);
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+    .chip-success { background: rgba(22,121,77,.12); color: var(--success); }
+    .chip-success::before { background: var(--success); }
+    .chip-warning { background: rgba(154,100,0,.12); color: var(--warning); }
+    .chip-warning::before { background: var(--warning); }
+    .chip-danger { background: rgba(180,35,24,.1); color: var(--danger); }
+    .chip-danger::before { background: var(--danger); }
+    .chip-info { background: rgba(38,207,124,.1); color: var(--brand-500); }
+    .chip-info::before { background: var(--brand-500); }
+
+    /* spacer */
+    .mt-4 { margin-top: 16px; }
+    .mt-2 { margin-top: 8px; }
+    .mb-4 { margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Screen Label Bar ─────────────────────────────────────────── -->
+<div class="screen-label-bar">
+  <span class="badge">Screen 03</span>
+  <span>Upload Legacy Accounts</span>
+  <span class="epic-badge">Epic F1.1 — Legacy Account Intake</span>
+  <div class="feature-tags">
+    <span class="feature-tag">F1.1.1 CSV</span>
+    <span class="feature-tag">F1.1.2 XLSX</span>
+    <span class="feature-tag">F1.1.3 XML</span>
+    <span class="feature-tag">F1.1.4 Schema Validation</span>
+    <span class="feature-tag">F1.1.5 Error Reporting</span>
+  </div>
+</div>
+
+<!-- ── App Shell ────────────────────────────────────────────────── -->
+<div class="app-shell">
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">A</div>
+      Azets ALM
+    </div>
+    <div class="topbar-divider"></div>
+    <span class="topbar-context">Account Lifecycle Management</span>
+    <div class="topbar-right">
+      <div class="topbar-notif">🔔</div>
+      <div style="color:rgba(255,255,255,.45); font-size:13px;">Help</div>
+      <div class="topbar-avatar">PS</div>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-section-label">Workspace</div>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">📁</span> Acquisitions
+        <span class="nav-badge">3</span>
+      </a>
+
+      <div class="sidebar-section-label">Account Lifecycle</div>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">📋</span> All Accounts
+      </a>
+      <a class="nav-item active" href="#">
+        <span class="nav-icon">⬆️</span> Upload Accounts
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">✅</span> Validation
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">🤖</span> AI Mapping
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">👁️</span> Review & Approve
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">🔄</span> Migration
+      </a>
+
+      <div class="sidebar-section-label">Reports</div>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">📊</span> Analytics
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">📥</span> Exports
+      </a>
+
+      <div class="sidebar-section-label">Admin</div>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">⚙️</span> Settings
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">👥</span> Users
+      </a>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar">PS</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">Priya Sharma</div>
+            <div class="sidebar-user-role">Integration Lead</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+      <div class="page-header">
+        <div class="breadcrumb">
+          <span>Account Lifecycle</span>
+          <span>›</span>
+          <span>Upload Legacy Accounts</span>
+        </div>
+        <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+          <div>
+            <h1 class="page-title">Upload Legacy Accounts</h1>
+            <p class="page-subtitle">Import account structures from acquired firms for mapping into Azets master chart of accounts</p>
+          </div>
+          <span class="annot">F1.1 Legacy Account Intake</span>
+        </div>
+      </div>
+
+      <div class="page-content">
+
+        <!-- ── Left Column ── -->
+        <div style="display:flex; flex-direction:column; gap:24px;">
+
+          <!-- Upload Zone Card -->
+          <div class="card">
+            <div class="dropzone">
+              <div class="dropzone-icon">☁️</div>
+              <div class="dropzone-title">Drag &amp; drop your account file here</div>
+              <div class="dropzone-sub">Supports CSV, XLSX, XML — up to 50MB per file</div>
+              <div class="dropzone-actions">
+                <button class="btn btn-primary">
+                  📂 Browse files
+                </button>
+                <span style="font-size:13px; color:var(--ink-400);">or drag file above</span>
+              </div>
+              <div class="annot-row" style="justify-content:center; margin-top:16px;">
+                <span class="annot">F1.1.1 CSV Upload</span>
+                <span class="annot">F1.1.2 XLSX Upload</span>
+                <span class="annot">F1.1.3 XML Upload</span>
+              </div>
+            </div>
+
+            <!-- Format Requirements -->
+            <div class="card-title">Format Requirements</div>
+            <div class="card-subtitle">All formats must include the following columns</div>
+            <div class="format-grid">
+              <div class="format-box">
+                <div class="format-box-header">
+                  <div class="format-icon csv">CSV</div>
+                  <span class="format-name">CSV</span>
+                </div>
+                <ul class="format-col-list">
+                  <li>Account Code <span class="required-tag">REQ</span></li>
+                  <li>Account Name <span class="required-tag">REQ</span></li>
+                  <li>Account Type <span class="required-tag">REQ</span></li>
+                  <li>Parent Code</li>
+                  <li>Currency</li>
+                </ul>
+              </div>
+              <div class="format-box">
+                <div class="format-box-header">
+                  <div class="format-icon xlsx">XLS</div>
+                  <span class="format-name">XLSX</span>
+                </div>
+                <ul class="format-col-list">
+                  <li>Account Code <span class="required-tag">REQ</span></li>
+                  <li>Account Name <span class="required-tag">REQ</span></li>
+                  <li>Account Type <span class="required-tag">REQ</span></li>
+                  <li>Parent Code</li>
+                  <li>Currency</li>
+                </ul>
+              </div>
+              <div class="format-box">
+                <div class="format-box-header">
+                  <div class="format-icon xml">XML</div>
+                  <span class="format-name">XML</span>
+                </div>
+                <ul class="format-col-list">
+                  <li>account_code <span class="required-tag">REQ</span></li>
+                  <li>account_name <span class="required-tag">REQ</span></li>
+                  <li>account_type <span class="required-tag">REQ</span></li>
+                  <li>parent_code</li>
+                  <li>currency</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Firm Details Form -->
+          <div class="card">
+            <div class="card-title">Firm Details</div>
+            <div class="card-subtitle">Provide context about the source firm and acquisition</div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Firm Name <span class="req">*</span></label>
+                <input type="text" value="Muldoon &amp; Co Ltd" placeholder="e.g. Muldoon & Co Ltd" />
+              </div>
+              <div class="form-group">
+                <label>Acquisition Date <span class="req">*</span></label>
+                <input type="date" value="2026-08-15" />
+              </div>
+              <div class="form-group">
+                <label>Legacy System <span class="req">*</span></label>
+                <select>
+                  <option>QuickBooks</option>
+                  <option>Sage</option>
+                  <option>Xero</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Account Count (approx.)</label>
+                <input type="text" value="~3,800 accounts" />
+              </div>
+              <div class="form-group full">
+                <label>Notes / Context</label>
+                <textarea placeholder="e.g. Irish SME, acquired via asset purchase. Using Sage 200 COA structure. May include dual-currency GBP/EUR accounts."></textarea>
+              </div>
+            </div>
+
+            <!-- Validation Rules Callout -->
+            <div class="form-section-divider"></div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <div class="form-section-title" style="margin-bottom:0;">Validation Rules</div>
+              <span class="annot">F1.1.4 Schema Validation</span>
+              <span class="annot">F1.1.5 Error Reporting</span>
+            </div>
+            <div class="callout">
+              <div class="callout-title">✓ The following rules will be applied on upload</div>
+              <ul>
+                <li>Account Code must be present and unique across all rows</li>
+                <li>Account Name must not be null or empty string</li>
+                <li>Account Type must be one of: Asset, Liability, Equity, Revenue, Expense</li>
+                <li>Parent Code, if provided, must reference an existing Account Code in the file</li>
+                <li>Currency, if provided, must be a valid ISO 4217 currency code (e.g. GBP, EUR, USD)</li>
+              </ul>
+            </div>
+
+            <!-- Submit -->
+            <button class="btn btn-primary btn-full">
+              ⬆️ Upload and Validate
+            </button>
+            <div style="text-align:center; margin-top:10px; font-size:12px; color:var(--ink-400);">
+              File will be parsed and validated. You'll see detailed results on the next screen.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── Right Column ── -->
+        <div class="right-col">
+
+          <!-- Upload Guidelines -->
+          <div class="info-card">
+            <div class="info-card-title">📌 Upload Guidelines</div>
+            <div class="info-row">
+              <span class="info-row-label">Max file size</span>
+              <span class="info-row-value">50 MB</span>
+            </div>
+            <div class="info-row">
+              <span class="info-row-label">Accepted formats</span>
+              <span class="info-row-value">CSV, XLSX, XML</span>
+            </div>
+            <div class="info-row">
+              <span class="info-row-label">Max rows</span>
+              <span class="info-row-value">100,000 accounts</span>
+            </div>
+            <div class="info-row">
+              <span class="info-row-label">Encoding</span>
+              <span class="info-row-value">UTF-8 preferred</span>
+            </div>
+            <div class="info-row">
+              <span class="info-row-label">Date format</span>
+              <span class="info-row-value">YYYY-MM-DD or DD/MM/YYYY</span>
+            </div>
+            <div class="info-row">
+              <span class="info-row-label">Header row</span>
+              <span class="info-row-value">Required (row 1)</span>
+            </div>
+          </div>
+
+          <!-- Recent Uploads -->
+          <div class="info-card">
+            <div class="info-card-title">🕐 Recent Uploads</div>
+            <div class="recent-item">
+              <div class="recent-item-icon">📄</div>
+              <div style="flex:1; min-width:0;">
+                <div class="recent-item-name">Morrison Partners.csv</div>
+                <div class="recent-item-meta">2,341 accounts · 28 Aug 2026</div>
+              </div>
+              <span class="status-chip chip-success">Passed</span>
+            </div>
+            <div class="recent-item">
+              <div class="recent-item-icon">📊</div>
+              <div style="flex:1; min-width:0;">
+                <div class="recent-item-name">TechStart_COA.xlsx</div>
+                <div class="recent-item-meta">890 accounts · 22 Aug 2026</div>
+              </div>
+              <span class="status-chip chip-warning">Warnings</span>
+            </div>
+            <div class="recent-item">
+              <div class="recent-item-icon">🗂️</div>
+              <div style="flex:1; min-width:0;">
+                <div class="recent-item-name">BrightField_accounts.xml</div>
+                <div class="recent-item-meta">5,102 accounts · 15 Aug 2026</div>
+              </div>
+              <span class="status-chip chip-danger">Errors</span>
+            </div>
+            <div class="recent-item">
+              <div class="recent-item-icon">📄</div>
+              <div style="flex:1; min-width:0;">
+                <div class="recent-item-name">Orion_CoA_v3.csv</div>
+                <div class="recent-item-meta">1,567 accounts · 10 Aug 2026</div>
+              </div>
+              <span class="status-chip chip-success">Passed</span>
+            </div>
+          </div>
+
+          <!-- Annotations Reference -->
+          <div class="info-card" style="background: #0f1420; border-color: rgba(38,207,124,.15);">
+            <div class="info-card-title" style="color:rgba(255,255,255,.8);">📐 Feature Annotations</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="annot">F1.1.1</span>
+                <span style="font-size:12px; color:#718096;">CSV file parsing &amp; ingestion</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="annot">F1.1.2</span>
+                <span style="font-size:12px; color:#718096;">XLSX workbook support</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="annot">F1.1.3</span>
+                <span style="font-size:12px; color:#718096;">XML structured import</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="annot">F1.1.4</span>
+                <span style="font-size:12px; color:#718096;">Schema &amp; column validation</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="annot">F1.1.5</span>
+                <span style="font-size:12px; color:#718096;">Inline error &amp; warning reporting</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

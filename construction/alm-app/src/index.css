@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { color: #0F0F0F; background: #F7F8F7; font-family: 'Manrope', Inter, 'Segoe UI', Arial, sans-serif; }
+  body { margin: 0; }
+  :focus-visible { outline: 3px solid #0067B8; outline-offset: 3px; }
+  a { text-underline-offset: 0.18em; }
+}
+
+@layer components {
+  .ds-skip-link {
+    @apply fixed inset-0 z-[9999] w-fit h-fit m-2 px-4 py-3 bg-ink-950 text-white rounded-pill text-sm font-semibold -translate-y-full focus:translate-y-0;
+  }
+}

@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 10 — Mapping History Portal | Azets ALM</title>
+<style>
+  :root {
+    --brand-500: #26CF7C;
+    --brand-600: #1CAE68;
+    --brand-100: #DDF8EA;
+    --ink-950: #0F0F0F;
+    --ink-800: #2B2B2B;
+    --ink-600: #5D625F;
+    --ink-400: #939A96;
+    --canvas: #FFFFFF;
+    --mist-50: #F7F8F7;
+    --mist-100: #EEF1EF;
+    --border: #D9DEDB;
+    --danger: #B42318;
+    --success: #16794D;
+    --warning: #9A6400;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+    --radius-control: 10px;
+    --shadow-1: 0 10px 35px rgba(15,15,15,.08);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif; background: var(--mist-50); color: var(--ink-800); font-size: 14px; }
+
+  /* Screen label bar */
+  .screen-label {
+    background: var(--ink-950);
+    color: #fff;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: 6px 20px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .screen-label span { opacity: .55; }
+  .screen-label strong { opacity: 1; color: var(--brand-500); }
+
+  /* Top bar */
+  .topbar {
+    height: 64px;
+    background: var(--ink-950);
+    border-bottom: 3px solid var(--brand-500);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+  .logo span { color: var(--brand-500); }
+  .topbar-right { display: flex; align-items: center; gap: 18px; }
+  .bell-wrap { position: relative; cursor: pointer; }
+  .bell-icon { width: 36px; height: 36px; background: rgba(255,255,255,.08); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px; }
+  .bell-badge { position: absolute; top: -4px; right: -4px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; border-radius: var(--radius-pill); padding: 1px 5px; }
+  .avatar { width: 36px; height: 36px; background: var(--brand-500); border-radius: var(--radius-pill); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: var(--ink-950); }
+  .user-info { color: #fff; font-size: 13px; line-height: 1.3; }
+  .user-info small { color: var(--ink-400); font-size: 11px; display: block; }
+
+  /* Layout */
+  .app-body { display: flex; min-height: calc(100vh - 64px - 30px); }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: var(--ink-950);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sidebar-section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-400);
+    padding: 12px 20px 6px;
+    margin-top: 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    color: rgba(255,255,255,.6);
+    font-size: 13.5px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all .15s;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,.05); }
+  .nav-item.active {
+    color: var(--brand-500);
+    background: rgba(38,207,124,.1);
+    border-left-color: var(--brand-500);
+    font-weight: 600;
+  }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: var(--radius-pill);
+    padding: 1px 7px;
+  }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  /* Main */
+  .main { flex: 1; padding: 32px 40px; overflow-y: auto; }
+
+  /* Page header */
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 26px; font-weight: 800; color: var(--ink-950); letter-spacing: -.02em; }
+  .page-subtitle { color: var(--ink-600); font-size: 14px; margin-top: 4px; }
+
+  /* Cards */
+  .card {
+    background: var(--canvas);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-1);
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    background: var(--canvas);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-1);
+    padding: 18px 24px;
+    margin-bottom: 20px;
+  }
+  .filter-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .filter-label { font-size: 11px; font-weight: 600; color: var(--ink-600); text-transform: uppercase; letter-spacing: .05em; }
+  .filter-input, .filter-select {
+    height: 38px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-control);
+    padding: 0 12px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--ink-800);
+    background: var(--mist-50);
+    outline: none;
+  }
+  .filter-input:focus, .filter-select:focus { border-color: var(--brand-500); background: #fff; }
+  .date-row { display: flex; gap: 8px; align-items: center; }
+  .date-sep { color: var(--ink-400); font-size: 12px; }
+
+  /* Buttons */
+  .btn {
+    height: 38px;
+    border-radius: var(--radius-control);
+    padding: 0 18px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--brand-500); color: var(--ink-950); }
+  .btn-primary:hover { background: var(--brand-600); }
+  .btn-ghost { background: transparent; color: var(--ink-800); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--ink-400); }
+  .btn-sm { height: 30px; padding: 0 12px; font-size: 12.5px; }
+  .btn-danger { background: #FEE4E2; color: var(--danger); border: 1.5px solid #FECDCA; }
+
+  /* Results summary */
+  .results-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--ink-600);
+  }
+  .filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--brand-100);
+    color: var(--success);
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--radius-pill);
+    padding: 2px 10px;
+    margin-left: 8px;
+  }
+
+  /* Table */
+  .table-wrap {
+    background: var(--canvas);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--mist-50); border-bottom: 1.5px solid var(--border); }
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-600);
+    white-space: nowrap;
+  }
+  td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 13.5px; }
+  tr:last-child td { border-bottom: none; }
+  tr.selected-row td { background: rgba(38,207,124,.04); }
+  tr:hover:not(thead tr) td { background: var(--mist-50); }
+
+  /* Status chips */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: var(--radius-pill);
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .chip-synced { background: #DCFCE7; color: var(--success); }
+  .chip-synced .chip-dot { background: var(--success); }
+  .chip-review { background: #FEF3C7; color: var(--warning); }
+  .chip-review .chip-dot { background: var(--warning); }
+  .chip-failed { background: #FEE4E2; color: var(--danger); }
+  .chip-failed .chip-dot { background: var(--danger); }
+  .chip-progress { background: var(--brand-100); color: var(--brand-600); }
+  .chip-progress .chip-dot { background: var(--brand-500); }
+
+  /* Table actions */
+  .tbl-actions { display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+  .tbl-link { font-size: 13px; font-weight: 600; color: var(--brand-600); cursor: pointer; text-decoration: none; }
+  .tbl-link:hover { text-decoration: underline; }
+  .tbl-link-muted { color: var(--ink-400); }
+  .tbl-sep { color: var(--border); }
+
+  /* Main layout with right panel */
+  .content-with-panel { display: flex; gap: 24px; align-items: flex-start; }
+  .content-main { flex: 1; min-width: 0; }
+  .right-panel {
+    width: 360px;
+    min-width: 360px;
+    background: var(--canvas);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+  }
+  .panel-header {
+    background: var(--ink-950);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-title { color: #fff; font-size: 14px; font-weight: 700; }
+  .panel-sub { color: var(--ink-400); font-size: 12px; }
+  .panel-close { color: var(--ink-400); cursor: pointer; font-size: 16px; }
+  .panel-tabs { display: flex; border-bottom: 1.5px solid var(--border); }
+  .panel-tab {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-600);
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    margin-bottom: -1.5px;
+  }
+  .panel-tab.active { color: var(--brand-500); border-bottom-color: var(--brand-500); }
+  .panel-body { padding: 18px; }
+
+  /* Meta grid */
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .meta-item { background: var(--mist-50); border-radius: 10px; padding: 10px 12px; }
+  .meta-label { font-size: 11px; color: var(--ink-400); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .meta-value { font-size: 14px; font-weight: 700; color: var(--ink-950); margin-top: 3px; }
+
+  /* Stat cards row */
+  .stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card { background: var(--mist-50); border-radius: 12px; padding: 12px 14px; }
+  .stat-num { font-size: 22px; font-weight: 800; color: var(--ink-950); }
+  .stat-label { font-size: 11.5px; color: var(--ink-600); margin-top: 2px; }
+  .stat-card.accent-green .stat-num { color: var(--success); }
+  .stat-card.accent-brand .stat-num { color: var(--brand-600); }
+  .stat-card.accent-warn .stat-num { color: var(--warning); }
+
+  /* Timeline */
+  .timeline-section {
+    background: var(--canvas);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-1);
+    padding: 20px 24px;
+    margin-top: 20px;
+  }
+  .timeline-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .timeline-title { font-size: 15px; font-weight: 700; color: var(--ink-950); }
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content:''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .tl-item { position: relative; padding-bottom: 18px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot {
+    position: absolute;
+    left: -20px;
+    top: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--border);
+    border: 2px solid #fff;
+  }
+  .tl-dot.green { background: var(--brand-500); }
+  .tl-dot.blue { background: #4A90D9; }
+  .tl-dot.warn { background: #F59E0B; }
+  .tl-dot.red { background: var(--danger); }
+  .tl-time { font-size: 11px; color: var(--ink-400); }
+  .tl-text { font-size: 13px; color: var(--ink-800); font-weight: 500; }
+  .tl-detail { font-size: 12px; color: var(--ink-600); margin-top: 2px; }
+
+  /* Annotation badges */
+  .ann-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #EEF0FF;
+    color: #4338CA;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: var(--radius-pill);
+    padding: 2px 9px;
+    border: 1.5px solid #C7D2FE;
+    cursor: default;
+  }
+
+  /* Progress bar */
+  .prog-bar { height: 6px; background: var(--mist-100); border-radius: 3px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 3px; background: var(--brand-500); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+  .session-id { font-family: 'Courier New', monospace; font-size: 12.5px; color: var(--ink-800); font-weight: 600; }
+  .pct-bar { display: flex; align-items: center; gap: 8px; }
+  .pct-val { font-size: 13px; font-weight: 700; color: var(--ink-950); min-width: 36px; }
+
+  .section-header-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .ann-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<!-- Screen label bar -->
+<div class="screen-label">
+  <strong>Screen 10</strong>
+  <span>Mapping History Portal</span>
+  <span>Epic: <strong>F2.1</strong></span>
+  <span>Features: F2.1.1 · F2.1.2 · F2.1.3 · F2.1.4 · F2.1.5</span>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="logo">Azets <span>ALM</span></div>
+  <div class="topbar-right">
+    <div class="bell-wrap">
+      <div class="bell-icon">🔔</div>
+      <div class="bell-badge">3</div>
+    </div>
+    <div class="avatar">PS</div>
+    <div class="user-info">
+      Priya Sharma
+      <small>Finance Manager</small>
+    </div>
+  </div>
+</div>
+
+<!-- App body -->
+<div class="app-body">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section-label">Main</div>
+    <a class="nav-item" href="#"><span class="nav-icon">⊞</span> Dashboard</a>
+    <a class="nav-item" href="#"><span class="nav-icon">↑</span> Upload Accounts</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⇄</span> Mapping Engine</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⚠</span> Exception Queue <span class="nav-badge">7</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">✎</span> Manual Workbench</a>
+    <a class="nav-item" href="#"><span class="nav-icon">↻</span> Cozone Sync</a>
+    <a class="nav-item" href="#"><span class="nav-icon">📋</span> Audit Reports</a>
+
+    <div class="sidebar-section-label">Management</div>
+    <a class="nav-item active" href="#"><span class="nav-icon">🕐</span> History Portal</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Bulk Operations</a>
+    <a class="nav-item" href="#"><span class="nav-icon">📒</span> Master Ledger</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⚖</span> Rules Engine</a>
+
+    <div class="sidebar-section-label">Admin</div>
+    <a class="nav-item" href="#"><span class="nav-icon">👥</span> Users & Access</a>
+    <a class="nav-item" href="#"><span class="nav-icon">❓</span> Help & Support</a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="section-header-row">
+        <div>
+          <div class="page-title">Mapping History Portal</div>
+          <div class="page-subtitle">View and audit all past mapping sessions</div>
+        </div>
+      </div>
+      <div class="ann-row">
+        <span class="ann-badge">F2.1.2 Historical Search</span>
+        <span class="ann-badge">F2.1.3 Report Retrieval</span>
+        <span class="ann-badge">F2.1.4 Investigation View</span>
+      </div>
+    </div>
+
+    <!-- Filter bar — F2.1.2 -->
+    <div class="filter-bar">
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label">Date Range</span>
+          <div class="date-row">
+            <input class="filter-input" type="text" placeholder="From: 01 Jun 2026" style="width:155px">
+            <span class="date-sep">→</span>
+            <input class="filter-input" type="text" placeholder="To: 01 Sep 2026" style="width:155px">
+          </div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Firm Name</span>
+          <input class="filter-input" type="text" placeholder="Search firm…" style="width:170px">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Status</span>
+          <select class="filter-select" style="width:140px">
+            <option>All Statuses</option>
+            <option>Synced</option>
+            <option>In Review</option>
+            <option>Failed</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Mapping Type</span>
+          <select class="filter-select" style="width:150px">
+            <option>All Types</option>
+            <option>Full Mapping</option>
+            <option>Incremental</option>
+            <option>Re-run</option>
+          </select>
+        </div>
+        <div class="filter-group" style="margin-top:auto">
+          <button class="btn btn-primary">🔍 Search</button>
+        </div>
+        <div class="filter-group" style="margin-top:auto">
+          <button class="btn btn-ghost">↓ Export list</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content with right panel -->
+    <div class="content-with-panel">
+      <div class="content-main">
+
+        <!-- Results summary -->
+        <div class="results-summary">
+          <div>
+            Showing <strong>24</strong> of <strong>47</strong> sessions
+            <span class="filter-tag">⏱ Last 90 days</span>
+          </div>
+          <div style="color:var(--ink-400);font-size:12px;">Click a row to view session details →</div>
+        </div>
+
+        <!-- History table -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Session ID</th>
+                <th>Firm</th>
+                <th>Date</th>
+                <th>Accounts</th>
+                <th>Auto-Mapped %</th>
+                <th>Manual Overrides</th>
+                <th>Status</th>
+                <th>Duration</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="selected-row">
+                <td><span class="session-id">A-2024-077</span></td>
+                <td><strong>Muldoon & Co</strong></td>
+                <td>29 Aug 2026</td>
+                <td>1,204</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">94.1%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:94%"></div></div>
+                  </div>
+                </td>
+                <td>18</td>
+                <td><span class="chip chip-synced"><span class="chip-dot"></span>Synced</span></td>
+                <td>4m 12s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-076</span></td>
+                <td><strong>Hartley Group</strong></td>
+                <td>27 Aug 2026</td>
+                <td>876</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">88.4%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:88%"></div></div>
+                  </div>
+                </td>
+                <td>34</td>
+                <td><span class="chip chip-review"><span class="chip-dot"></span>In Review</span></td>
+                <td>3m 05s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Re-open</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-075</span></td>
+                <td><strong>Redwood Partners</strong></td>
+                <td>25 Aug 2026</td>
+                <td>2,103</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">91.7%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:92%"></div></div>
+                  </div>
+                </td>
+                <td>52</td>
+                <td><span class="chip chip-synced"><span class="chip-dot"></span>Synced</span></td>
+                <td>6m 48s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-074</span></td>
+                <td><strong>Palmer Associates</strong></td>
+                <td>22 Aug 2026</td>
+                <td>654</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">79.2%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:79%"></div></div>
+                  </div>
+                </td>
+                <td>67</td>
+                <td><span class="chip chip-failed"><span class="chip-dot"></span>Failed</span></td>
+                <td>2m 30s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Re-open</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-073</span></td>
+                <td><strong>Muldoon & Co</strong></td>
+                <td>19 Aug 2026</td>
+                <td>1,198</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">96.0%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:96%"></div></div>
+                  </div>
+                </td>
+                <td>9</td>
+                <td><span class="chip chip-synced"><span class="chip-dot"></span>Synced</span></td>
+                <td>3m 55s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-072</span></td>
+                <td><strong>Kinross & Bell</strong></td>
+                <td>15 Aug 2026</td>
+                <td>422</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">85.1%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:85%"></div></div>
+                  </div>
+                </td>
+                <td>28</td>
+                <td><span class="chip chip-review"><span class="chip-dot"></span>In Review</span></td>
+                <td>1m 44s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Re-open</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-071</span></td>
+                <td><strong>Hartley Group</strong></td>
+                <td>12 Aug 2026</td>
+                <td>899</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">93.3%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:93%"></div></div>
+                  </div>
+                </td>
+                <td>22</td>
+                <td><span class="chip chip-synced"><span class="chip-dot"></span>Synced</span></td>
+                <td>4m 01s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-070</span></td>
+                <td><strong>Dunmore Capital</strong></td>
+                <td>09 Aug 2026</td>
+                <td>1,450</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">97.2%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:97%"></div></div>
+                  </div>
+                </td>
+                <td>6</td>
+                <td><span class="chip chip-synced"><span class="chip-dot"></span>Synced</span></td>
+                <td>5m 18s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-069</span></td>
+                <td><strong>Palmer Associates</strong></td>
+                <td>06 Aug 2026</td>
+                <td>631</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">82.5%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:83%"></div></div>
+                  </div>
+                </td>
+                <td>41</td>
+                <td><span class="chip chip-synced"><span class="chip-dot"></span>Synced</span></td>
+                <td>2m 51s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-068</span></td>
+                <td><strong>Redwood Partners</strong></td>
+                <td>01 Aug 2026</td>
+                <td>2,087</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">90.4%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:90%"></div></div>
+                  </div>
+                </td>
+                <td>60</td>
+                <td><span class="chip chip-review"><span class="chip-dot"></span>In Review</span></td>
+                <td>7m 12s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Re-open</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-067</span></td>
+                <td><strong>Kinross & Bell</strong></td>
+                <td>28 Jul 2026</td>
+                <td>408</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">88.0%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:88%"></div></div>
+                  </div>
+                </td>
+                <td>19</td>
+                <td><span class="chip chip-synced"><span class="chip-dot"></span>Synced</span></td>
+                <td>1m 38s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="session-id">A-2024-066</span></td>
+                <td><strong>Dunmore Capital</strong></td>
+                <td>22 Jul 2026</td>
+                <td>1,388</td>
+                <td>
+                  <div class="pct-bar">
+                    <span class="pct-val">95.8%</span>
+                    <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:96%"></div></div>
+                  </div>
+                </td>
+                <td>11</td>
+                <td><span class="chip chip-synced"><span class="chip-dot"></span>Synced</span></td>
+                <td>5m 00s</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">View details</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">PDF</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Change timeline — F2.1.5 -->
+        <div class="timeline-section">
+          <div class="timeline-header">
+            <div>
+              <div class="timeline-title">Change Timeline — Session A-2024-077</div>
+              <div style="color:var(--ink-400);font-size:12px;margin-top:3px;">Muldoon & Co · 29 Aug 2026</div>
+            </div>
+            <span class="ann-badge">F2.1.5</span>
+          </div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-dot green"></div>
+              <div class="tl-time">29 Aug 2026, 14:32</div>
+              <div class="tl-text">Session synced to Cozone</div>
+              <div class="tl-detail">All 1,204 accounts confirmed. Reference: TXN-COZ-9981</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot blue"></div>
+              <div class="tl-time">29 Aug 2026, 14:28</div>
+              <div class="tl-text">Finance Manager approved session</div>
+              <div class="tl-detail">Priya Sharma approved 18 manual overrides after review</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot warn"></div>
+              <div class="tl-time">29 Aug 2026, 14:15</div>
+              <div class="tl-text">Manual override applied — 3 accounts</div>
+              <div class="tl-detail">Accounts 1042, 1043, 1044 reassigned from AZT-2000 → AZT-2100</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot blue"></div>
+              <div class="tl-time">29 Aug 2026, 14:08</div>
+              <div class="tl-text">Auto-mapping completed (94.1%)</div>
+              <div class="tl-detail">1,133 accounts auto-mapped · 71 flagged for review</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot green"></div>
+              <div class="tl-time">29 Aug 2026, 14:04</div>
+              <div class="tl-text">Session initiated</div>
+              <div class="tl-detail">File uploaded: muldoon_accounts_aug2026.csv · 1,204 accounts</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right panel — F2.1.4 Investigation View -->
+      <div class="right-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Session A-2024-077</div>
+            <div class="panel-sub">Muldoon & Co · Investigation View</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="ann-badge">F2.1.4</span>
+            <span class="panel-close">✕</span>
+          </div>
+        </div>
+        <div class="panel-tabs">
+          <div class="panel-tab active">Summary</div>
+          <div class="panel-tab">Mappings</div>
+          <div class="panel-tab">Audit Events</div>
+        </div>
+        <div class="panel-body">
+
+          <!-- Session metadata -->
+          <div class="meta-grid">
+            <div class="meta-item">
+              <div class="meta-label">Session ID</div>
+              <div class="meta-value" style="font-size:12px;font-family:monospace;">A-2024-077</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Status</div>
+              <div class="meta-value"><span class="chip chip-synced" style="font-size:11px;"><span class="chip-dot"></span>Synced</span></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Initiated by</div>
+              <div class="meta-value" style="font-size:13px;">Priya Sharma</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Date</div>
+              <div class="meta-value" style="font-size:12px;">29 Aug 2026</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Mapping Type</div>
+              <div class="meta-value" style="font-size:12px;">Full Mapping</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Duration</div>
+              <div class="meta-value" style="font-size:13px;">4m 12s</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Stats cards -->
+          <div style="font-size:12px;font-weight:700;color:var(--ink-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Session Statistics</div>
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-num">1,204</div>
+              <div class="stat-label">Total Accounts</div>
+            </div>
+            <div class="stat-card accent-green">
+              <div class="stat-num">1,133</div>
+              <div class="stat-label">Auto-Mapped</div>
+            </div>
+            <div class="stat-card accent-brand">
+              <div class="stat-num">18</div>
+              <div class="stat-label">Manual Overrides</div>
+            </div>
+            <div class="stat-card accent-warn">
+              <div class="stat-num">53</div>
+              <div class="stat-label">Reviewed & Cleared</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--ink-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Source File</div>
+          <div style="background:var(--mist-50);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--ink-800);">
+            <div>📄 muldoon_accounts_aug2026.csv</div>
+            <div style="color:var(--ink-400);font-size:11.5px;margin-top:4px;">3.2 MB · Uploaded 29 Aug 14:04</div>
+          </div>
+
+          <div class="divider"></div>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <button class="btn btn-primary btn-sm" style="flex:1;">↓ Download PDF</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;">🔁 Re-run</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

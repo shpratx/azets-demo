@@ -1,0 +1,312 @@
+{
+  "product": "Automated Ledger Mapping Tool",
+  "deliveryModel": "Foundation -> MVP -> Incremental -> Advanced",
+  "epics": [
+    {
+      "id": "F0.1",
+      "wave": "W0",
+      "name": "Platform Engineering Foundation",
+      "objective": "Establish cloud-native platform, environments, deployment automation, observability and operational readiness.",
+      "features": [
+        "F0.1.1 Infrastructure as Code",
+        "F0.1.2 Environment Provisioning",
+        "F0.1.3 CI/CD Platform",
+        "F0.1.4 Observability Foundation",
+        "F0.1.5 Resilience Foundation"
+      ],
+      "type": "Foundation"
+    },
+    {
+      "id": "F0.2",
+      "wave": "W0",
+      "name": "Identity and Access Platform",
+      "objective": "Implement enterprise-grade authentication, authorization and audit controls.",
+      "features": [
+        "F0.2.1 User Authentication",
+        "F0.2.2 Role Based Access Control",
+        "F0.2.3 Session and Token Management",
+        "F0.2.4 Fine-Grained Permissions",
+        "F0.2.5 Access Audit Logging"
+      ],
+      "type": "Foundation"
+    },
+    {
+      "id": "F0.3",
+      "wave": "W0",
+      "name": "Master Ledger Reference Management",
+      "objective": "Establish authoritative Azets master ledger management capability.",
+      "features": [
+        "F0.3.1 Master Ledger Import",
+        "F0.3.2 Ledger Maintenance UI",
+        "F0.3.3 Ledger Versioning",
+        "F0.3.4 Ledger Classification",
+        "F0.3.5 Ledger Audit Tracking"
+      ],
+      "type": "Foundation"
+    },
+    {
+      "id": "F0.4",
+      "wave": "W0",
+      "name": "Mapping Rules Engine Foundation",
+      "objective": "Create configurable deterministic mapping engine.",
+      "features": [
+        "F0.4.1 Rule Management",
+        "F0.4.2 Rule Repository",
+        "F0.4.3 Rule Evaluation Service",
+        "F0.4.4 Rule Versioning",
+        "F0.4.5 Rule Simulation"
+      ],
+      "type": "Foundation"
+    },
+    {
+      "id": "F0.5",
+      "wave": "W0",
+      "name": "AI and Machine Learning Foundation",
+      "objective": "Create AI training and recommendation infrastructure.",
+      "features": [
+        "F0.5.1 Historical Mapping Data Model",
+        "F0.5.2 Training Dataset Pipeline",
+        "F0.5.3 Feature Extraction Framework",
+        "F0.5.4 Model Registry",
+        "F0.5.5 Explainability Framework"
+      ],
+      "type": "Foundation"
+    },
+    {
+      "id": "F1.1",
+      "wave": "W1",
+      "name": "Legacy Account Intake",
+      "objective": "Accept and validate incoming account structures.",
+      "features": [
+        "F1.1.1 CSV Upload",
+        "F1.1.2 XLSX Upload",
+        "F1.1.3 XML Upload",
+        "F1.1.4 Schema Validation",
+        "F1.1.5 File Error Reporting"
+      ],
+      "requirements": ["FR1"],
+      "type": "MVP"
+    },
+    {
+      "id": "F1.2",
+      "wave": "W1",
+      "name": "Account Structure Processing",
+      "objective": "Normalize legacy account structures before mapping.",
+      "features": [
+        "F1.2.1 File Parsing",
+        "F1.2.2 Data Normalization",
+        "F1.2.3 Duplicate Detection",
+        "F1.2.4 Missing Code Detection",
+        "F1.2.5 Data Quality Scoring"
+      ],
+      "type": "MVP"
+    },
+    {
+      "id": "F1.3",
+      "wave": "W1",
+      "name": "Automated Mapping Engine",
+      "objective": "Generate rule-based and AI-driven mapping recommendations.",
+      "features": [
+        "F1.3.1 Rule-Based Mapping",
+        "F1.3.2 AI Mapping Suggestions",
+        "F1.3.3 Similarity Scoring",
+        "F1.3.4 Confidence Scoring",
+        "F1.3.5 Recommendation Ranking"
+      ],
+      "requirements": ["FR2"],
+      "type": "MVP"
+    },
+    {
+      "id": "F1.4",
+      "wave": "W1",
+      "name": "Ambiguity and Exception Management",
+      "objective": "Identify and route uncertain mappings for review.",
+      "features": [
+        "F1.4.1 Ambiguity Detection",
+        "F1.4.2 Review Queue",
+        "F1.4.3 Exception Dashboard",
+        "F1.4.4 Needs Review Workflow",
+        "F1.4.5 Assignment Management"
+      ],
+      "requirements": ["FR3"],
+      "type": "MVP"
+    },
+    {
+      "id": "F1.5",
+      "wave": "W1",
+      "name": "Manual Mapping Workbench",
+      "objective": "Provide human-in-the-loop review and override capabilities.",
+      "features": [
+        "F1.5.1 Mapping Review Screen",
+        "F1.5.2 Manual Mapping Selection",
+        "F1.5.3 Search Master Ledger",
+        "F1.5.4 Override Approval",
+        "F1.5.5 Override Audit Capture"
+      ],
+      "requirements": ["FR3"],
+      "type": "MVP"
+    },
+    {
+      "id": "F1.6",
+      "wave": "W1",
+      "name": "Cozone Integration",
+      "objective": "Synchronize approved mappings into Cozone.",
+      "features": [
+        "F1.6.1 Cozone API Adapter",
+        "F1.6.2 Mapping Export Service",
+        "F1.6.3 Synchronization Monitoring",
+        "F1.6.4 Retry Framework",
+        "F1.6.5 Failure Handling"
+      ],
+      "requirements": ["FR5"],
+      "type": "MVP"
+    },
+    {
+      "id": "F1.7",
+      "wave": "W1",
+      "name": "Audit Reporting",
+      "objective": "Generate audit-ready compliance reports.",
+      "features": [
+        "F1.7.1 Mapping Decision Capture",
+        "F1.7.2 Override Audit Capture",
+        "F1.7.3 Audit Event Timeline",
+        "F1.7.4 PDF Report Generation",
+        "F1.7.5 CSV Report Generation"
+      ],
+      "requirements": ["FR4"],
+      "type": "MVP"
+    },
+    {
+      "id": "F1.8",
+      "wave": "W1",
+      "name": "Notification Framework",
+      "objective": "Inform users about errors, failures and required actions.",
+      "features": [
+        "F1.8.1 Mapping Error Notifications",
+        "F1.8.2 Validation Error Notifications",
+        "F1.8.3 Integration Failure Notifications",
+        "F1.8.4 In-App Notifications",
+        "F1.8.5 Email Notifications"
+      ],
+      "requirements": ["FR6"],
+      "type": "MVP"
+    },
+    {
+      "id": "F2.1",
+      "wave": "W2",
+      "name": "Mapping History and Audit Portal",
+      "objective": "Provide historical traceability and audit access.",
+      "features": [
+        "F2.1.1 Session History",
+        "F2.1.2 Historical Search",
+        "F2.1.3 Report Retrieval",
+        "F2.1.4 Investigation View",
+        "F2.1.5 Change Timeline"
+      ],
+      "requirements": ["FR7"],
+      "type": "Incremental"
+    },
+    {
+      "id": "F2.2",
+      "wave": "W2",
+      "name": "Bulk Mapping Operations",
+      "objective": "Support multiple-firm processing at scale.",
+      "features": [
+        "F2.2.1 Multi-Firm Upload",
+        "F2.2.2 Batch Processing",
+        "F2.2.3 Batch Monitoring",
+        "F2.2.4 Batch Retry",
+        "F2.2.5 Parallel Execution"
+      ],
+      "requirements": ["FR8"],
+      "type": "Incremental"
+    },
+    {
+      "id": "F2.3",
+      "wave": "W2",
+      "name": "Contextual Help and Support",
+      "objective": "Provide embedded support capability.",
+      "features": [
+        "F2.3.1 Guided Uploads",
+        "F2.3.2 Mapping Help Assistant",
+        "F2.3.3 Troubleshooting Catalog",
+        "F2.3.4 Support Requests",
+        "F2.3.5 Knowledge Base"
+      ],
+      "requirements": ["FR9"],
+      "type": "Incremental"
+    },
+    {
+      "id": "F2.4",
+      "wave": "W2",
+      "name": "Operational Analytics and Dashboard",
+      "objective": "Track platform health, adoption and KPIs.",
+      "features": [
+        "F2.4.1 Processing Metrics",
+        "F2.4.2 Error Analytics",
+        "F2.4.3 Adoption Analytics",
+        "F2.4.4 SLA Monitoring",
+        "F2.4.5 KPI Dashboard"
+      ],
+      "type": "Incremental"
+    },
+    {
+      "id": "F3.1",
+      "wave": "W3",
+      "name": "Predictive Mapping Analytics",
+      "objective": "Predict mapping quality and integration outcomes.",
+      "features": [
+        "F3.1.1 Confidence Forecasting",
+        "F3.1.2 Accuracy Prediction",
+        "F3.1.3 Risk Identification",
+        "F3.1.4 Mapping Readiness Score",
+        "F3.1.5 Recommendation Quality Metrics"
+      ],
+      "requirements": ["FR10"],
+      "type": "Advanced"
+    },
+    {
+      "id": "F3.2",
+      "wave": "W3",
+      "name": "Custom Mapping Rule Framework",
+      "objective": "Allow configurable rule customization by partner firms.",
+      "features": [
+        "F3.2.1 Partner Rule Definitions",
+        "F3.2.2 Rule Templates",
+        "F3.2.3 Visual Rule Builder",
+        "F3.2.4 Rule Testing Sandbox",
+        "F3.2.5 Rule Promotion Workflow"
+      ],
+      "requirements": ["FR11"],
+      "type": "Advanced"
+    },
+    {
+      "id": "F3.3",
+      "wave": "W3",
+      "name": "AI Continuous Learning",
+      "objective": "Improve mapping quality through feedback loops.",
+      "features": [
+        "F3.3.1 Feedback Capture",
+        "F3.3.2 Override Learning",
+        "F3.3.3 Model Retraining",
+        "F3.3.4 Recommendation Optimization",
+        "F3.3.5 Drift Detection"
+      ],
+      "type": "Advanced"
+    },
+    {
+      "id": "F3.4",
+      "wave": "W3",
+      "name": "SaaS Tenant Management",
+      "objective": "Enable multi-tenant commercialization of the platform.",
+      "features": [
+        "F3.4.1 Tenant Provisioning",
+        "F3.4.2 Subscription Management",
+        "F3.4.3 Usage Metering",
+        "F3.4.4 Tenant Isolation",
+        "F3.4.5 Commercial Reporting"
+      ],
+      "type": "Advanced"
+    }
+  ]
+}

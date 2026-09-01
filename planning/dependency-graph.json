@@ -1,0 +1,369 @@
+{
+  "artifact": "dependency-graph.json",
+  "version": "1.0",
+  "initiative": "Automated Ledger Mapping Tool",
+  "methodology": "Foundation -> MVP -> Incremental -> Advanced",
+  "architecturePrinciples": [
+    "AP-1.1",
+    "AP-2.1",
+    "AP-2.4",
+    "AP-5.1",
+    "AP-8.1",
+    "AP-9.1",
+    "AP-10.1"
+  ],
+  "nodes": [
+    {
+      "id": "F0.1",
+      "name": "Platform Engineering Foundation",
+      "type": "foundation",
+      "domain": "platform"
+    },
+    {
+      "id": "F0.2",
+      "name": "Identity and Access Platform",
+      "type": "foundation",
+      "domain": "security"
+    },
+    {
+      "id": "F0.3",
+      "name": "Master Ledger Reference Management",
+      "type": "foundation",
+      "domain": "ledger"
+    },
+    {
+      "id": "F0.4",
+      "name": "Mapping Rules Engine",
+      "type": "foundation",
+      "domain": "mapping"
+    },
+    {
+      "id": "F0.5",
+      "name": "AI Foundation",
+      "type": "foundation",
+      "domain": "ai"
+    },
+
+    {
+      "id": "F1.1",
+      "name": "Legacy Account Intake",
+      "type": "mvp",
+      "domain": "intake"
+    },
+    {
+      "id": "F1.2",
+      "name": "Account Structure Processing",
+      "type": "mvp",
+      "domain": "intake"
+    },
+    {
+      "id": "F1.3",
+      "name": "Automated Mapping Engine",
+      "type": "mvp",
+      "domain": "mapping"
+    },
+    {
+      "id": "F1.4",
+      "name": "Ambiguity Management",
+      "type": "mvp",
+      "domain": "review"
+    },
+    {
+      "id": "F1.5",
+      "name": "Manual Mapping Workbench",
+      "type": "mvp",
+      "domain": "review"
+    },
+    {
+      "id": "F1.6",
+      "name": "Cozone Integration",
+      "type": "mvp",
+      "domain": "integration"
+    },
+    {
+      "id": "F1.7",
+      "name": "Audit Reporting",
+      "type": "mvp",
+      "domain": "audit"
+    },
+    {
+      "id": "F1.8",
+      "name": "Notification Framework",
+      "type": "mvp",
+      "domain": "notification"
+    },
+
+    {
+      "id": "F2.1",
+      "name": "Mapping History Portal",
+      "type": "incremental",
+      "domain": "audit"
+    },
+    {
+      "id": "F2.2",
+      "name": "Bulk Mapping Operations",
+      "type": "incremental",
+      "domain": "mapping"
+    },
+    {
+      "id": "F2.3",
+      "name": "Help and Support",
+      "type": "incremental",
+      "domain": "support"
+    },
+    {
+      "id": "F2.4",
+      "name": "Operational Dashboard",
+      "type": "incremental",
+      "domain": "operations"
+    },
+
+    {
+      "id": "F3.1",
+      "name": "Predictive Analytics",
+      "type": "advanced",
+      "domain": "ai"
+    },
+    {
+      "id": "F3.2",
+      "name": "Custom Rule Framework",
+      "type": "advanced",
+      "domain": "mapping"
+    },
+    {
+      "id": "F3.3",
+      "name": "Continuous Learning",
+      "type": "advanced",
+      "domain": "ai"
+    },
+    {
+      "id": "F3.4",
+      "name": "SaaS Tenant Management",
+      "type": "advanced",
+      "domain": "platform"
+    }
+  ],
+
+  "dependencies": [
+
+    {
+      "from": "F0.1",
+      "to": "F0.2",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.1",
+      "to": "F0.3",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.1",
+      "to": "F0.4",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.1",
+      "to": "F0.5",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.2",
+      "to": "F1.1",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.1",
+      "to": "F1.2",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.3",
+      "to": "F1.3",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.4",
+      "to": "F1.3",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.5",
+      "to": "F1.3",
+      "type": "soft"
+    },
+
+    {
+      "from": "F1.2",
+      "to": "F1.3",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.3",
+      "to": "F1.4",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.4",
+      "to": "F1.5",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.5",
+      "to": "F1.7",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.5",
+      "to": "F1.6",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.3",
+      "to": "F1.8",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.7",
+      "to": "F2.1",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.1",
+      "to": "F2.2",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.2",
+      "to": "F2.2",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.3",
+      "to": "F2.2",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.1",
+      "to": "F2.4",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.7",
+      "to": "F2.4",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.8",
+      "to": "F2.4",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.5",
+      "to": "F3.1",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.4",
+      "to": "F3.2",
+      "type": "hard"
+    },
+
+    {
+      "from": "F3.1",
+      "to": "F3.3",
+      "type": "hard"
+    },
+
+    {
+      "from": "F2.1",
+      "to": "F3.3",
+      "type": "hard"
+    },
+
+    {
+      "from": "F1.5",
+      "to": "F3.3",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.2",
+      "to": "F3.4",
+      "type": "hard"
+    },
+
+    {
+      "from": "F0.4",
+      "to": "F3.4",
+      "type": "hard"
+    }
+  ],
+
+  "criticalPath": [
+    "F0.1",
+    "F0.2",
+    "F0.3",
+    "F0.4",
+    "F1.1",
+    "F1.2",
+    "F1.3",
+    "F1.4",
+    "F1.5",
+    "F1.6",
+    "F1.7"
+  ],
+
+  "releaseWaves": {
+    "W0": [
+      "F0.1",
+      "F0.2",
+      "F0.3",
+      "F0.4",
+      "F0.5"
+    ],
+    "W1": [
+      "F1.1",
+      "F1.2",
+      "F1.3",
+      "F1.4",
+      "F1.5",
+      "F1.6",
+      "F1.7",
+      "F1.8"
+    ],
+    "W2": [
+      "F2.1",
+      "F2.2",
+      "F2.3",
+      "F2.4"
+    ],
+    "W3": [
+      "F3.1",
+      "F3.2",
+      "F3.3",
+      "F3.4"
+    ]
+  }
+}

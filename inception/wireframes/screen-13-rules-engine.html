@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 13 — Mapping Rules Engine | Azets ALM</title>
+<style>
+  :root {
+    --brand-500: #26CF7C;
+    --brand-600: #1CAE68;
+    --brand-100: #DDF8EA;
+    --ink-950: #0F0F0F;
+    --ink-800: #2B2B2B;
+    --ink-600: #5D625F;
+    --ink-400: #939A96;
+    --canvas: #FFFFFF;
+    --mist-50: #F7F8F7;
+    --mist-100: #EEF1EF;
+    --border: #D9DEDB;
+    --danger: #B42318;
+    --success: #16794D;
+    --warning: #9A6400;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+    --radius-control: 10px;
+    --shadow-1: 0 10px 35px rgba(15,15,15,.08);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif; background: var(--mist-50); color: var(--ink-800); font-size: 14px; }
+
+  .screen-label { background: var(--ink-950); color: #fff; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 6px 20px; display: flex; gap: 24px; align-items: center; }
+  .screen-label span { opacity: .55; }
+  .screen-label strong { opacity: 1; color: var(--brand-500); }
+
+  .topbar { height: 64px; background: var(--ink-950); border-bottom: 3px solid var(--brand-500); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 100; }
+  .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+  .logo span { color: var(--brand-500); }
+  .topbar-right { display: flex; align-items: center; gap: 18px; }
+  .bell-wrap { position: relative; cursor: pointer; }
+  .bell-icon { width: 36px; height: 36px; background: rgba(255,255,255,.08); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px; }
+  .bell-badge { position: absolute; top: -4px; right: -4px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; border-radius: var(--radius-pill); padding: 1px 5px; }
+  .avatar { width: 36px; height: 36px; background: var(--brand-500); border-radius: var(--radius-pill); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: var(--ink-950); }
+  .user-info { color: #fff; font-size: 13px; line-height: 1.3; }
+  .user-info small { color: var(--ink-400); font-size: 11px; display: block; }
+
+  .app-body { display: flex; min-height: calc(100vh - 64px - 30px); }
+
+  .sidebar { width: 240px; min-width: 240px; background: var(--ink-950); padding: 20px 0; display: flex; flex-direction: column; gap: 4px; }
+  .sidebar-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-400); padding: 12px 20px 6px; margin-top: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: rgba(255,255,255,.6); font-size: 13.5px; cursor: pointer; border-left: 3px solid transparent; transition: all .15s; text-decoration: none; }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,.05); }
+  .nav-item.active { color: var(--brand-500); background: rgba(38,207,124,.1); border-left-color: var(--brand-500); font-weight: 600; }
+  .nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; border-radius: var(--radius-pill); padding: 1px 7px; }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .main { flex: 1; padding: 32px 40px; overflow-y: auto; }
+
+  .btn { height: 38px; border-radius: var(--radius-control); padding: 0 18px; font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--brand-500); color: var(--ink-950); }
+  .btn-primary:hover { background: var(--brand-600); }
+  .btn-ghost { background: transparent; color: var(--ink-800); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--ink-400); }
+  .btn-sm { height: 30px; padding: 0 12px; font-size: 12px; border-radius: 8px; }
+
+  /* Page header */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  .page-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .page-title { font-size: 26px; font-weight: 800; color: var(--ink-950); letter-spacing: -.02em; }
+  .count-badge { background: var(--brand-100); color: var(--brand-600); font-size: 13px; font-weight: 700; border-radius: var(--radius-pill); padding: 4px 14px; }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 11px 20px; font-size: 14px; font-weight: 600; color: var(--ink-600); cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: var(--brand-600); border-bottom-color: var(--brand-500); }
+  .tab:hover:not(.active) { color: var(--ink-800); }
+
+  /* Filter bar */
+  .filter-bar { background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: var(--shadow-1); padding: 16px 20px; margin-bottom: 18px; }
+  .filter-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .filter-label { font-size: 11px; font-weight: 600; color: var(--ink-600); text-transform: uppercase; letter-spacing: .05em; }
+  .filter-input, .filter-select { height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius-control); padding: 0 12px; font-family: inherit; font-size: 13.5px; color: var(--ink-800); background: var(--mist-50); outline: none; }
+  .filter-input:focus, .filter-select:focus { border-color: var(--brand-500); background: #fff; }
+
+  /* Two-column */
+  .two-col { display: flex; gap: 20px; align-items: flex-start; }
+  .col-main { flex: 1; min-width: 0; }
+  .col-side { width: 300px; min-width: 300px; }
+
+  /* Table */
+  .table-wrap { background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: var(--shadow-1); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--mist-50); border-bottom: 1.5px solid var(--border); }
+  th { padding: 11px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-600); white-space: nowrap; }
+  td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--mist-50); }
+
+  /* Priority badge */
+  .priority-badge { width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+  .pri-high { background: #FEE4E2; color: var(--danger); }
+  .pri-med { background: #FEF3C7; color: var(--warning); }
+  .pri-low { background: var(--mist-100); color: var(--ink-600); }
+
+  /* Chips */
+  .chip { display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-pill); padding: 2px 9px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .chip-active { background: var(--brand-100); color: var(--brand-600); }
+  .chip-active .chip-dot { background: var(--brand-500); }
+  .chip-draft { background: var(--mist-100); color: var(--ink-600); }
+  .chip-draft .chip-dot { background: var(--ink-400); }
+  .chip-deprecated { background: #FEE4E2; color: var(--danger); }
+  .chip-deprecated .chip-dot { background: var(--danger); }
+
+  /* Code snippet */
+  .code-snip { font-family: 'Courier New', monospace; font-size: 11.5px; background: var(--ink-950); color: var(--brand-500); border-radius: 6px; padding: 3px 8px; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
+
+  /* Maps-to */
+  .maps-to { display: inline-flex; align-items: center; gap: 5px; }
+  .maps-arrow { color: var(--brand-500); font-size: 12px; }
+  .maps-code { font-family: 'Courier New', monospace; font-size: 11.5px; font-weight: 700; color: var(--ink-800); background: var(--mist-100); border-radius: 6px; padding: 2px 7px; }
+
+  /* Confidence boost */
+  .conf-boost { font-size: 12px; font-weight: 700; color: var(--success); background: #DCFCE7; border-radius: 6px; padding: 2px 7px; }
+
+  /* Table actions */
+  .tbl-actions { display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+  .tbl-link { font-size: 12px; font-weight: 600; color: var(--brand-600); cursor: pointer; text-decoration: none; }
+  .tbl-sep { color: var(--border); }
+  .toggle-on { background: var(--brand-100); color: var(--brand-600); border: none; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+  .toggle-off { background: var(--mist-100); color: var(--ink-400); border: none; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+
+  /* Side card */
+  .side-card { background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: var(--shadow-1); overflow: hidden; }
+  .side-card-header { background: var(--ink-950); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .side-card-title { color: #fff; font-size: 14px; font-weight: 700; }
+  .side-card-sub { color: var(--ink-400); font-size: 12px; margin-top: 3px; }
+  .side-card-body { padding: 16px; }
+
+  /* Simulation inputs */
+  .sim-input-group { margin-bottom: 12px; }
+  .sim-label { font-size: 11.5px; font-weight: 700; color: var(--ink-600); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+  .sim-input { width: 100%; height: 36px; border: 1.5px solid var(--border); border-radius: 8px; padding: 0 10px; font-family: inherit; font-size: 13px; background: var(--mist-50); outline: none; }
+  .sim-input:focus { border-color: var(--brand-500); background: #fff; }
+  .sim-or { text-align: center; font-size: 11px; color: var(--ink-400); margin: 10px 0; }
+
+  /* Sim result items */
+  .sim-result { background: var(--mist-50); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .sim-result:last-child { margin-bottom: 0; }
+  .sim-result-rule { font-size: 12.5px; font-weight: 700; color: var(--ink-950); }
+  .sim-result-match { font-size: 11.5px; color: var(--ink-600); margin-top: 3px; }
+  .sim-score { font-size: 12px; font-weight: 800; color: var(--brand-600); float: right; }
+  .sim-why { font-size: 11px; color: var(--ink-400); margin-top: 4px; font-style: italic; }
+
+  /* Versioning footer */
+  .version-footer {
+    background: var(--ink-950);
+    border-radius: var(--radius-card);
+    padding: 16px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  .vf-group { display: flex; align-items: center; gap: 20px; }
+  .vf-item { display: flex; flex-direction: column; }
+  .vf-label { font-size: 11px; color: var(--ink-400); text-transform: uppercase; letter-spacing: .06em; }
+  .vf-value { font-size: 14px; font-weight: 700; color: #fff; margin-top: 3px; }
+  .vf-value span { color: var(--brand-500); }
+
+  /* Annotation badges */
+  .ann-badge { display: inline-flex; align-items: center; background: #EEF0FF; color: #4338CA; font-size: 11px; font-weight: 700; border-radius: var(--radius-pill); padding: 2px 9px; border: 1.5px solid #C7D2FE; }
+  .ann-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+
+  /* Rule ID */
+  .rule-id { font-family: 'Courier New', monospace; font-size: 11.5px; color: var(--ink-600); font-weight: 700; background: var(--mist-100); border-radius: 5px; padding: 2px 6px; }
+</style>
+</head>
+<body>
+
+<!-- Screen label bar -->
+<div class="screen-label">
+  <strong>Screen 13</strong>
+  <span>Mapping Rules Engine</span>
+  <span>Epic: <strong>F0.4</strong></span>
+  <span>Features: F0.4.1 · F0.4.2 · F0.4.3 · F0.4.4 · F0.4.5</span>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="logo">Azets <span>ALM</span></div>
+  <div class="topbar-right">
+    <div class="bell-wrap">
+      <div class="bell-icon">🔔</div>
+      <div class="bell-badge">3</div>
+    </div>
+    <div class="avatar">PS</div>
+    <div class="user-info">
+      Priya Sharma
+      <small>Finance Manager</small>
+    </div>
+  </div>
+</div>
+
+<div class="app-body">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section-label">Main</div>
+    <a class="nav-item" href="#"><span class="nav-icon">⊞</span> Dashboard</a>
+    <a class="nav-item" href="#"><span class="nav-icon">↑</span> Upload Accounts</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⇄</span> Mapping Engine</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⚠</span> Exception Queue <span class="nav-badge">7</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">✎</span> Manual Workbench</a>
+    <a class="nav-item" href="#"><span class="nav-icon">↻</span> Cozone Sync</a>
+    <a class="nav-item" href="#"><span class="nav-icon">📋</span> Audit Reports</a>
+
+    <div class="sidebar-section-label">Management</div>
+    <a class="nav-item" href="#"><span class="nav-icon">🕐</span> History Portal</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Bulk Operations</a>
+    <a class="nav-item" href="#"><span class="nav-icon">📒</span> Master Ledger</a>
+    <a class="nav-item active" href="#"><span class="nav-icon">⚖</span> Rules Engine</a>
+
+    <div class="sidebar-section-label">Admin</div>
+    <a class="nav-item" href="#"><span class="nav-icon">👥</span> Users & Access</a>
+    <a class="nav-item" href="#"><span class="nav-icon">❓</span> Help & Support</a>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title-row">
+          <div class="page-title">Mapping Rules Engine</div>
+          <span class="count-badge">142 active rules</span>
+        </div>
+        <div style="color:var(--ink-600);font-size:14px;margin-top:5px;">Define, manage and simulate the logic that powers automatic account mapping</div>
+      </div>
+      <button class="btn btn-primary">+ Add new rule</button>
+    </div>
+
+    <div class="ann-row">
+      <span class="ann-badge">F0.4.1 Rule Management</span>
+      <span class="ann-badge">F0.4.3 Rule Evaluation</span>
+      <span class="ann-badge">F0.4.5 Rule Simulation</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active">Rules Library <span style="font-size:11px;color:var(--ink-400);margin-left:4px;">(F0.4.1 · F0.4.2)</span></div>
+      <div class="tab">Simulation <span style="font-size:11px;color:var(--ink-400);margin-left:4px;">(F0.4.5)</span></div>
+      <div class="tab">Version History <span style="font-size:11px;color:var(--ink-400);margin-left:4px;">(F0.4.4)</span></div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label">Search rules</span>
+          <input class="filter-input" type="text" placeholder="Rule name, ID, or keyword…" style="width:220px">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Rule Type</span>
+          <select class="filter-select" style="width:195px">
+            <option>All Types</option>
+            <option>Account Code Pattern</option>
+            <option>Name Match</option>
+            <option>Account Type</option>
+            <option>Hierarchical</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Priority</span>
+          <select class="filter-select" style="width:120px">
+            <option>All Priorities</option>
+            <option>High (1–20)</option>
+            <option>Medium (21–60)</option>
+            <option>Low (61+)</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Status</span>
+          <select class="filter-select" style="width:130px">
+            <option>All Statuses</option>
+            <option>Active</option>
+            <option>Draft</option>
+            <option>Deprecated</option>
+          </select>
+        </div>
+        <div class="filter-group" style="margin-top:auto">
+          <button class="btn btn-ghost">🔍 Filter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two-column: table + simulation panel -->
+    <div class="two-col">
+      <div class="col-main">
+
+        <!-- Rules table — F0.4.1 / F0.4.2 -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Rule ID</th>
+                <th>Name</th>
+                <th>Condition</th>
+                <th>Action (Maps To)</th>
+                <th>Conf. Boost</th>
+                <th>Status</th>
+                <th>Used</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="priority-badge pri-high">1</span></td>
+                <td><span class="rule-id">RULE-001</span></td>
+                <td><strong>Cash accounts mapping</strong></td>
+                <td><span class="code-snip">code.startsWith('CASH')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-1000</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+15%</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>2,841</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-on">On</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-high">2</span></td>
+                <td><span class="rule-id">RULE-002</span></td>
+                <td><strong>Trade receivables (code)</strong></td>
+                <td><span class="code-snip">code.startsWith('RECV')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-1100</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+12%</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>1,994</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-on">On</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-high">3</span></td>
+                <td><span class="rule-id">RULE-005</span></td>
+                <td><strong>Payables name match</strong></td>
+                <td><span class="code-snip">name.contains('Payable')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-2000</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+10%</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>1,633</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-on">On</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-high">7</span></td>
+                <td><span class="rule-id">RULE-009</span></td>
+                <td><strong>Revenue — type hierarchy</strong></td>
+                <td><span class="code-snip">type == 'INCOME'</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-4000</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+8%</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>1,202</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-on">On</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-med">15</span></td>
+                <td><span class="rule-id">RULE-018</span></td>
+                <td><strong>Fixed assets — non-current</strong></td>
+                <td><span class="code-snip">code.startsWith('FA')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-1500</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+11%</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>887</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-on">On</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-med">22</span></td>
+                <td><span class="rule-id">RULE-042</span></td>
+                <td><strong>Suspense accounts</strong></td>
+                <td><span class="code-snip">name.contains('Suspense')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-9000</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+5%</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>614</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-on">On</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-med">30</span></td>
+                <td><span class="rule-id">RULE-055</span></td>
+                <td><strong>Equity — share capital</strong></td>
+                <td><span class="code-snip">name.matches('Share.*Cap')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-3000</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+9%</span></td>
+                <td><span class="chip chip-draft"><span class="chip-dot"></span>Draft</span></td>
+                <td>0</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-off">Off</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-med">45</span></td>
+                <td><span class="rule-id">RULE-071</span></td>
+                <td><strong>Cost of sales — direct</strong></td>
+                <td><span class="code-snip">code.startsWith('COS')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-5000</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+7%</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>1,108</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-on">On</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-low">68</span></td>
+                <td><span class="rule-id">RULE-088</span></td>
+                <td><strong>Intercompany eliminations</strong></td>
+                <td><span class="code-snip">code.startsWith('ICO')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-9000</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost">+6%</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>355</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-on">On</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="priority-badge pri-low">99</span></td>
+                <td><span class="rule-id">RULE-112</span></td>
+                <td><strong>Legacy code prefix mapping</strong></td>
+                <td><span class="code-snip">code.startsWith('LGC')</span></td>
+                <td>
+                  <div class="maps-to">
+                    <span class="maps-arrow">→</span>
+                    <span class="maps-code">AZT-1200</span>
+                  </div>
+                </td>
+                <td><span class="conf-boost" style="color:var(--ink-600);background:var(--mist-100);">+2%</span></td>
+                <td><span class="chip chip-deprecated"><span class="chip-dot"></span>Deprecated</span></td>
+                <td>48</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#">Test</a>
+                    <span class="tbl-sep">|</span>
+                    <button class="toggle-off">Off</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--mist-50);border-top:1px solid var(--border);">
+            <span style="font-size:12.5px;color:var(--ink-400);">Showing 10 of 142 rules</span>
+            <div style="display:flex;gap:6px;">
+              <button style="width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-weight:700;cursor:pointer;color:var(--ink-800);">‹</button>
+              <button style="width:30px;height:30px;border-radius:8px;border:none;background:var(--brand-500);font-weight:700;cursor:pointer;color:var(--ink-950);">1</button>
+              <button style="width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-weight:700;cursor:pointer;color:var(--ink-800);">2</button>
+              <button style="width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-weight:700;cursor:pointer;color:var(--ink-800);">›</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Version footer — F0.4.4 -->
+        <div class="version-footer">
+          <div class="vf-group">
+            <div class="vf-item">
+              <span class="vf-label">Rules Version</span>
+              <span class="vf-value"><span>v1.8</span> (current)</span>
+            </div>
+            <div class="vf-item">
+              <span class="vf-label">Last Published</span>
+              <span class="vf-value">14 Aug 2026</span>
+            </div>
+            <div class="vf-item">
+              <span class="vf-label">Staged Changes</span>
+              <span class="vf-value"><span>4</span> pending</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <span class="ann-badge" style="background:rgba(38,207,124,.15);color:var(--brand-500);border-color:rgba(38,207,124,.4);">F0.4.4 Versioning</span>
+            <button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.2);">View version history</button>
+            <button class="btn btn-primary btn-sm">Publish v1.9</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Simulation panel — F0.4.5 -->
+      <div class="col-side">
+        <div class="side-card">
+          <div class="side-card-header">
+            <div>
+              <div class="side-card-title">🧪 Test Rules Against Sample Data</div>
+              <div class="side-card-sub">Simulate rule evaluation before publishing</div>
+            </div>
+          </div>
+          <div style="background:rgba(38,207,124,.08);border-bottom:1px solid rgba(38,207,124,.2);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:12px;font-weight:600;color:var(--brand-600);">F0.4.5 Simulation</span>
+            <span class="ann-badge">F0.4.5</span>
+          </div>
+          <div class="side-card-body">
+
+            <div class="sim-input-group">
+              <div class="sim-label">Account Code</div>
+              <input class="sim-input" type="text" placeholder="e.g. CASH_001" value="CASH_MAIN">
+            </div>
+            <div class="sim-input-group">
+              <div class="sim-label">Account Name</div>
+              <input class="sim-input" type="text" placeholder="e.g. Cash at Bank" value="Cash at Bank — Current">
+            </div>
+            <div class="sim-input-group">
+              <div class="sim-label">Account Type</div>
+              <input class="sim-input" type="text" placeholder="e.g. ASSET, INCOME…" value="ASSET">
+            </div>
+
+            <div class="sim-or">— or —</div>
+
+            <div style="border: 1.5px dashed var(--border); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 14px; background: var(--mist-50);">
+              <div style="font-size:12.5px;color:var(--ink-400);">Upload test accounts CSV</div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:6px;">Browse file</button>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:16px;">▶ Run Simulation</button>
+
+            <!-- Results -->
+            <div style="font-size:12px;font-weight:700;color:var(--ink-600);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">
+              Simulation Results
+              <span style="background:var(--brand-100);color:var(--brand-600);border-radius:var(--radius-pill);padding:1px 8px;font-size:11px;margin-left:6px;">3 matches</span>
+            </div>
+
+            <div class="sim-result">
+              <div>
+                <span class="sim-score">97%</span>
+                <div class="sim-result-rule">RULE-001 · Cash accounts mapping</div>
+              </div>
+              <div class="sim-result-match">→ Maps to <span class="maps-code" style="font-size:11px;">AZT-1000</span> +15% confidence</div>
+              <div class="sim-why">code.startsWith('CASH') ✓ — matched on code prefix</div>
+            </div>
+
+            <div class="sim-result">
+              <div>
+                <span class="sim-score">72%</span>
+                <div class="sim-result-rule">RULE-018 · Fixed assets — non-current</div>
+              </div>
+              <div class="sim-result-match">→ Maps to <span class="maps-code" style="font-size:11px;">AZT-1500</span> +11% confidence</div>
+              <div class="sim-why">name contains 'Current' — partial match, low confidence</div>
+            </div>
+
+            <div class="sim-result" style="opacity:.6;">
+              <div>
+                <span class="sim-score" style="color:var(--ink-400);">41%</span>
+                <div class="sim-result-rule" style="color:var(--ink-600);">RULE-005 · Payables name match</div>
+              </div>
+              <div class="sim-result-match" style="color:var(--ink-400);">No strong match — below threshold</div>
+              <div class="sim-why">name.contains('Payable') — not matched</div>
+            </div>
+
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+              <div style="font-size:12px;color:var(--ink-400);">Final mapping recommendation:</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <span class="maps-code" style="font-size:12px;">CASH_MAIN</span>
+                <span style="color:var(--brand-500);font-size:13px;">→</span>
+                <span class="maps-code" style="font-size:12px;background:var(--brand-100);color:var(--brand-600);">AZT-1000</span>
+                <span style="font-size:12px;font-weight:700;color:var(--brand-600);">97%</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

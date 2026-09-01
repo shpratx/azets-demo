@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 08 — Cozone Synchronisation | Azets ALM</title>
+<style>
+  :root {
+    --brand-500: #26CF7C;
+    --ink-950: #0F0F0F;
+    --ink-800: #2B2B2B;
+    --ink-600: #5D625F;
+    --ink-400: #939A96;
+    --canvas: #FFFFFF;
+    --mist-50: #F7F8F7;
+    --mist-100: #EEF1EF;
+    --border: #D9DEDB;
+    --danger: #B42318;
+    --success: #16794D;
+    --warning: #9A6400;
+    --brand-100: #DDF8EA;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+    --radius-control: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: var(--mist-50);
+    color: var(--ink-800);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .screen-label-bar {
+    background: var(--ink-950);
+    color: var(--brand-500);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 6px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .screen-label-bar span { color: var(--ink-400); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  .topbar {
+    height: 64px;
+    background: var(--ink-950);
+    border-bottom: 3px solid var(--brand-500);
+    display: flex; align-items: center; padding: 0 24px; gap: 20px;
+    flex-shrink: 0; z-index: 100;
+  }
+  .topbar-logo { font-size: 18px; font-weight: 800; color: var(--canvas); letter-spacing: -.02em; }
+  .topbar-logo em { color: var(--brand-500); font-style: normal; }
+  .topbar-divider { width: 1px; height: 28px; background: #2a2a2a; }
+  .topbar-title { color: var(--ink-400); font-size: 13px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .topbar-firm-badge {
+    background: #1a1a1a; border: 1px solid #333; color: var(--ink-400);
+    font-size: 12px; padding: 5px 12px; border-radius: var(--radius-pill);
+  }
+  .topbar-firm-badge strong { color: var(--canvas); }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--brand-500); color: var(--ink-950);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+
+  .app-shell { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: 240px; background: var(--ink-950); flex-shrink: 0;
+    display: flex; flex-direction: column; padding: 16px 0;
+    overflow-y: auto; border-right: 1px solid #1a1a1a;
+  }
+  .sidebar-section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: #404040; padding: 12px 20px 6px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+    color: var(--ink-400); font-size: 13px; cursor: pointer;
+    border-left: 3px solid transparent; transition: all .15s; text-decoration: none;
+  }
+  .sidebar-item:hover { color: var(--canvas); background: rgba(255,255,255,.04); }
+  .sidebar-item.active {
+    color: var(--brand-500); background: rgba(38,207,124,.1);
+    border-left-color: var(--brand-500); font-weight: 600;
+  }
+  .sidebar-item .icon { font-size: 15px; width: 18px; text-align: center; }
+  .sidebar-badge {
+    margin-left: auto; background: var(--danger); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 6px;
+    border-radius: var(--radius-pill); min-width: 18px; text-align: center;
+  }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--mist-50); }
+
+  .page-header {
+    background: var(--canvas); border-bottom: 1px solid var(--border);
+    padding: 16px 28px; display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+  }
+  .page-header h1 { font-size: 20px; font-weight: 700; color: var(--ink-950); }
+  .page-header-sub { font-size: 13px; color: var(--ink-400); margin-top: 2px; }
+
+  .annotation-badge {
+    display: inline-flex; align-items: center; font-size: 10px; font-weight: 700;
+    background: var(--ink-950); color: var(--brand-500); padding: 2px 8px;
+    border-radius: var(--radius-pill); letter-spacing: .04em;
+  }
+
+  .content-scroll { flex: 1; overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* Cards */
+  .card {
+    background: var(--canvas); border-radius: var(--radius-card);
+    border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    padding: 24px;
+  }
+  .card-title {
+    font-size: 14px; font-weight: 700; color: var(--ink-950);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .subtitle { font-size: 12px; color: var(--ink-400); font-weight: 400; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 20px; border-radius: var(--radius-pill);
+    font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+    transition: all .15s; font-family: inherit;
+  }
+  .btn-primary { background: var(--brand-500); color: var(--ink-950); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-primary-lg { padding: 14px 36px; font-size: 15px; }
+  .btn-ghost { background: transparent; color: var(--ink-600); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--ink-400); color: var(--ink-800); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  /* Checklist */
+  .checklist { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .check-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 12px;
+    background: var(--brand-100); border: 1px solid #b3ecd3;
+  }
+  .check-icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--success); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .check-text { font-size: 13px; font-weight: 600; color: var(--success); }
+  .check-detail { font-size: 12px; color: var(--ink-600); margin-left: auto; }
+
+  /* Sync initiated button area */
+  .sync-cta-area {
+    background: linear-gradient(135deg, #f0fff8 0%, #e8faf2 100%);
+    border: 2px solid rgba(38,207,124,.3);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .sync-cta-text h3 { font-size: 16px; font-weight: 700; color: var(--ink-950); margin-bottom: 4px; }
+  .sync-cta-text p { font-size: 13px; color: var(--ink-600); }
+
+  /* Sync status */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .sync-status-big {
+    background: var(--canvas); border-radius: var(--radius-card); border: 2px solid #b3ecd3;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); padding: 28px;
+  }
+  .sync-firm { font-size: 12px; font-weight: 600; color: var(--ink-400); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .07em; }
+  .sync-status-indicator {
+    font-size: 26px; font-weight: 800; color: var(--success);
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  }
+  .sync-check-circle {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--success); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .sync-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .sync-stat-item label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--ink-400); display: block; margin-bottom: 2px;
+  }
+  .sync-stat-item value {
+    font-size: 18px; font-weight: 700; color: var(--ink-950);
+  }
+  .sync-stat-item .neutral { color: var(--ink-800); }
+  .sync-stat-item .success-val { color: var(--success); }
+  .sync-stat-item .muted { font-size: 12px; color: var(--ink-400); font-weight: 500; }
+  .sync-timestamp { font-size: 11px; color: var(--ink-400); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+  /* Connection Health */
+  .health-card { background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,.06); padding: 24px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; padding: 3px 10px;
+    border-radius: var(--radius-pill); white-space: nowrap;
+  }
+  .chip::before { content: '●'; font-size: 7px; }
+  .chip-success { background: var(--brand-100); color: var(--success); }
+  .chip-danger { background: #FEE2E2; color: var(--danger); }
+  .chip-warning { background: #FEF3C7; color: var(--warning); }
+  .health-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .health-row:last-child { border-bottom: none; }
+  .health-key { color: var(--ink-400); font-size: 12px; font-weight: 600; }
+  .health-val { color: var(--ink-800); font-weight: 600; }
+  .pulse-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--brand-500); animation: pulse 2s infinite;
+    margin-right: 4px;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .5; transform: scale(.85); }
+  }
+
+  /* Table */
+  .table-card {
+    background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 11px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--ink-400); background: var(--mist-50);
+    border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--mist-50); }
+  td { padding: 11px 16px; font-size: 13px; color: var(--ink-800); vertical-align: middle; }
+  .code-mono {
+    font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700;
+    background: var(--mist-100); padding: 2px 8px; border-radius: 6px; color: var(--ink-800);
+  }
+
+  /* Retry callout */
+  .retry-callout {
+    background: #F0F4FF; border: 1px solid #C7D2FE; border-radius: 12px;
+    padding: 16px 20px; display: flex; align-items: flex-start; gap: 14px;
+  }
+  .retry-icon {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: #818CF8; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .retry-text h4 { font-size: 13px; font-weight: 700; color: #3730A3; margin-bottom: 4px; }
+  .retry-text p { font-size: 12px; color: #6366F1; line-height: 1.5; }
+
+  /* Empty state */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px; gap: 8px;
+  }
+  .empty-icon { font-size: 36px; }
+  .empty-title { font-size: 14px; font-weight: 700; color: var(--success); }
+  .empty-sub { font-size: 12px; color: var(--ink-400); text-align: center; max-width: 300px; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--ink-950); }
+</style>
+</head>
+<body>
+
+<div class="screen-label-bar">
+  Screen 08 — Cozone Sync / Integration Status
+  <span>Epic F1.6 · Features: F1.6.1 · F1.6.2 · F1.6.3 · F1.6.4 · F1.6.5</span>
+</div>
+
+<div class="topbar">
+  <div class="topbar-logo">Azets <em>ALM</em></div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-title">Account Ledger Migration</div>
+  <div class="topbar-right">
+    <div class="topbar-firm-badge">Session: <strong>A-2024-089</strong></div>
+    <div class="topbar-firm-badge">Firm: <strong>Muldoon &amp; Co</strong></div>
+    <div class="avatar">PS</div>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <nav class="sidebar">
+    <div class="sidebar-section-label">Migration</div>
+    <a class="sidebar-item" href="#"><span class="icon">📤</span> File Upload</a>
+    <a class="sidebar-item" href="#"><span class="icon">✅</span> Validation</a>
+    <a class="sidebar-item" href="#"><span class="icon">🤖</span> AI Mapping</a>
+    <a class="sidebar-item" href="#"><span class="icon">🔧</span> Manual Workbench <span class="sidebar-badge">226</span></a>
+    <a class="sidebar-item" href="#"><span class="icon">⚠️</span> Exceptions <span class="sidebar-badge">226</span></a>
+    <a class="sidebar-item active" href="#"><span class="icon">🔄</span> Cozone Sync</a>
+    <a class="sidebar-item" href="#"><span class="icon">📋</span> Audit Reports</a>
+    <div class="sidebar-section-label" style="margin-top:12px;">Session</div>
+    <a class="sidebar-item" href="#"><span class="icon">📊</span> Dashboard</a>
+    <a class="sidebar-item" href="#"><span class="icon">⚙️</span> Settings</a>
+  </nav>
+
+  <div class="main">
+
+    <div class="page-header">
+      <div>
+        <h1>Cozone Synchronisation</h1>
+        <div class="page-header-sub">Muldoon &amp; Co — Session A-2024-089</div>
+      </div>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <span class="annotation-badge">F1.6.1 Cozone Adapter</span>
+        <span class="annotation-badge">F1.6.3 Sync Monitor</span>
+        <span class="annotation-badge">F1.6.4 Retry</span>
+      </div>
+    </div>
+
+    <div class="content-scroll">
+
+      <!-- Pre-sync Checklist + CTA -->
+      <div class="card">
+        <div class="card-title">
+          Pre-Sync Checklist — Muldoon &amp; Co
+          <span class="card-title subtitle">&nbsp;All conditions must be met before sync can be initiated</span>
+        </div>
+        <div class="checklist">
+          <div class="check-item">
+            <div class="check-icon">✓</div>
+            <div class="check-text">All accounts mapped</div>
+            <div class="check-detail">3,847 / 3,847 accounts</div>
+          </div>
+          <div class="check-item">
+            <div class="check-icon">✓</div>
+            <div class="check-text">Manual review complete</div>
+            <div class="check-detail">226 overrides approved</div>
+          </div>
+          <div class="check-item">
+            <div class="check-icon">✓</div>
+            <div class="check-text">Audit trail generated</div>
+            <div class="check-detail">Full decision log ready · F1.7.1</div>
+          </div>
+          <div class="check-item">
+            <div class="check-icon">✓</div>
+            <div class="check-text">Finance Manager approval obtained</div>
+            <div class="check-detail">Priya Sharma · 13:47 today</div>
+          </div>
+        </div>
+        <div class="sync-cta-area">
+          <div class="sync-cta-text">
+            <h3>Ready to synchronise with Cozone</h3>
+            <p>All 3,847 accounts will be exported via the Cozone API adapter. This action cannot be undone once initiated.</p>
+          </div>
+          <button class="btn btn-primary btn-primary-lg" style="margin-left:auto; white-space:nowrap;">
+            🔄 Initiate Cozone Sync
+          </button>
+        </div>
+      </div>
+
+      <!-- Sync Status + Connection Health -->
+      <div class="two-col">
+
+        <!-- Last completed sync -->
+        <div class="sync-status-big">
+          <div class="sync-firm">Last sync — Hartley Partners</div>
+          <div class="sync-status-indicator">
+            <div class="sync-check-circle">✓</div>
+            Sync Complete
+          </div>
+          <div class="sync-stats-grid">
+            <div class="sync-stat-item">
+              <label>Accounts Exported</label>
+              <value class="neutral">1,204</value>
+            </div>
+            <div class="sync-stat-item">
+              <label>Failures</label>
+              <value class="success-val">0</value>
+            </div>
+            <div class="sync-stat-item">
+              <label>Duration</label>
+              <value class="neutral">1m 23s</value>
+            </div>
+            <div class="sync-stat-item">
+              <label>Session</label>
+              <value><div class="code-mono" style="font-size:11px;">A-2024-087</div></value>
+            </div>
+          </div>
+          <div class="sync-timestamp">Completed: 28 Aug 2026 · 11:52 BST · Exported by: James Liu</div>
+        </div>
+
+        <!-- Connection Health -->
+        <div class="health-card">
+          <div class="card-title">Connection Health</div>
+          <div class="health-row">
+            <span class="health-key">Cozone API</span>
+            <span class="chip chip-success">CONNECTED</span>
+          </div>
+          <div class="health-row">
+            <span class="health-key">Last Heartbeat</span>
+            <span class="health-val"><span class="pulse-dot"></span>2 seconds ago</span>
+          </div>
+          <div class="health-row">
+            <span class="health-key">API Version</span>
+            <span class="health-val"><span class="code-mono">v3.2.1</span></span>
+          </div>
+          <div class="health-row">
+            <span class="health-key">Environment</span>
+            <span class="health-val">Production</span>
+          </div>
+          <div class="health-row">
+            <span class="health-key">Auth</span>
+            <span class="chip chip-success">OAuth 2.0 Valid</span>
+          </div>
+          <div class="health-row" style="border-bottom:none;">
+            <span class="health-key">Retry Policy</span>
+            <span class="health-val">3 attempts · exp backoff</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sync History Table -->
+      <div>
+        <div class="section-header">
+          <div class="section-title">Sync History</div>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto;">📤 Export Log</button>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Firm</th>
+                <th>Session</th>
+                <th>Date</th>
+                <th>Accounts</th>
+                <th>Status</th>
+                <th>Duration</th>
+                <th>Initiated By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;">Hartley Partners</td>
+                <td><span class="code-mono">A-2024-087</span></td>
+                <td>28 Aug 2026</td>
+                <td>1,204</td>
+                <td><span class="chip chip-success">Complete</span></td>
+                <td>1m 23s</td>
+                <td>James Liu</td>
+                <td><button class="btn btn-ghost btn-sm">View Report</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;">Brennan &amp; Walsh LLP</td>
+                <td><span class="code-mono">A-2024-085</span></td>
+                <td>25 Aug 2026</td>
+                <td>2,910</td>
+                <td><span class="chip chip-success">Complete</span></td>
+                <td>2m 47s</td>
+                <td>Sarah Thompson</td>
+                <td><button class="btn btn-ghost btn-sm">View Report</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;">Midlands Freight Co</td>
+                <td><span class="code-mono">A-2024-083</span></td>
+                <td>22 Aug 2026</td>
+                <td>847</td>
+                <td><span class="chip chip-success">Complete</span></td>
+                <td>0m 58s</td>
+                <td>Raj Patel</td>
+                <td><button class="btn btn-ghost btn-sm">View Report</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;">Osei Group</td>
+                <td><span class="code-mono">A-2024-081</span></td>
+                <td>19 Aug 2026</td>
+                <td>1,557</td>
+                <td><span class="chip chip-success">Complete</span></td>
+                <td>1m 51s</td>
+                <td>Emma Osei</td>
+                <td><button class="btn btn-ghost btn-sm">View Report</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;">Forrest &amp; Co</td>
+                <td><span class="code-mono">A-2024-079</span></td>
+                <td>15 Aug 2026</td>
+                <td>3,214</td>
+                <td><span class="chip" style="background:#FEE2E2;color:var(--danger);">Partial — 3 failures</span></td>
+                <td>3m 04s</td>
+                <td>Priya Sharma</td>
+                <td><button class="btn btn-ghost btn-sm" style="color:var(--danger); border-color:var(--danger);">Review Failures</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Failure Log + Retry Callout side by side -->
+      <div class="two-col">
+
+        <!-- Failure Log -->
+        <div class="card">
+          <div class="card-title">Failure Log — Current Session</div>
+          <div class="empty-state">
+            <div class="empty-icon">✅</div>
+            <div class="empty-title">No failures in last 30 days</div>
+            <div class="empty-sub">All recent sync operations completed successfully. Any transient errors were resolved automatically via the retry framework.</div>
+          </div>
+        </div>
+
+        <!-- Retry Framework Callout -->
+        <div class="card" style="display:flex; flex-direction:column; gap:16px;">
+          <div class="card-title">Automatic Retry Framework <span class="annotation-badge" style="margin-left:auto;">F1.6.4</span></div>
+          <div class="retry-callout">
+            <div class="retry-icon">↺</div>
+            <div class="retry-text">
+              <h4>Transient Failure Handling</h4>
+              <p>On any transient API error (timeout, rate limit, 5xx), the system automatically retries up to 3 times with exponential backoff: 5s → 15s → 45s. Permanent failures (4xx auth, schema mismatch) are immediately escalated without retry.</p>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; padding:8px 12px; background:var(--mist-50); border-radius:10px; font-size:12px;">
+              <span style="color:var(--ink-400); font-weight:600;">Max retries</span>
+              <span style="font-weight:700;">3 attempts</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:8px 12px; background:var(--mist-50); border-radius:10px; font-size:12px;">
+              <span style="color:var(--ink-400); font-weight:600;">Backoff strategy</span>
+              <span style="font-weight:700;">Exponential (5s, 15s, 45s)</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:8px 12px; background:var(--mist-50); border-radius:10px; font-size:12px;">
+              <span style="color:var(--ink-400); font-weight:600;">On permanent failure</span>
+              <span style="font-weight:700; color:var(--danger);">Escalate + log audit entry</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:8px 12px; background:var(--mist-50); border-radius:10px; font-size:12px;">
+              <span style="color:var(--ink-400); font-weight:600;">Feature ref</span>
+              <span class="code-mono">F1.6.4 / F1.6.5</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /content-scroll -->
+
+  </div><!-- /main -->
+
+</div><!-- /app-shell -->
+
+</body>
+</html>

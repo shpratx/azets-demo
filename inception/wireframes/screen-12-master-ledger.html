@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 12 — Master Ledger Management | Azets ALM</title>
+<style>
+  :root {
+    --brand-500: #26CF7C;
+    --brand-600: #1CAE68;
+    --brand-100: #DDF8EA;
+    --ink-950: #0F0F0F;
+    --ink-800: #2B2B2B;
+    --ink-600: #5D625F;
+    --ink-400: #939A96;
+    --canvas: #FFFFFF;
+    --mist-50: #F7F8F7;
+    --mist-100: #EEF1EF;
+    --border: #D9DEDB;
+    --danger: #B42318;
+    --success: #16794D;
+    --warning: #9A6400;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+    --radius-control: 10px;
+    --shadow-1: 0 10px 35px rgba(15,15,15,.08);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif; background: var(--mist-50); color: var(--ink-800); font-size: 14px; }
+
+  .screen-label { background: var(--ink-950); color: #fff; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 6px 20px; display: flex; gap: 24px; align-items: center; }
+  .screen-label span { opacity: .55; }
+  .screen-label strong { opacity: 1; color: var(--brand-500); }
+
+  .topbar { height: 64px; background: var(--ink-950); border-bottom: 3px solid var(--brand-500); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 100; }
+  .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+  .logo span { color: var(--brand-500); }
+  .topbar-right { display: flex; align-items: center; gap: 18px; }
+  .bell-wrap { position: relative; cursor: pointer; }
+  .bell-icon { width: 36px; height: 36px; background: rgba(255,255,255,.08); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px; }
+  .bell-badge { position: absolute; top: -4px; right: -4px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; border-radius: var(--radius-pill); padding: 1px 5px; }
+  .avatar { width: 36px; height: 36px; background: var(--brand-500); border-radius: var(--radius-pill); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: var(--ink-950); }
+  .user-info { color: #fff; font-size: 13px; line-height: 1.3; }
+  .user-info small { color: var(--ink-400); font-size: 11px; display: block; }
+
+  .app-body { display: flex; min-height: calc(100vh - 64px - 30px); }
+
+  .sidebar { width: 240px; min-width: 240px; background: var(--ink-950); padding: 20px 0; display: flex; flex-direction: column; gap: 4px; }
+  .sidebar-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-400); padding: 12px 20px 6px; margin-top: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: rgba(255,255,255,.6); font-size: 13.5px; cursor: pointer; border-left: 3px solid transparent; transition: all .15s; text-decoration: none; }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,.05); }
+  .nav-item.active { color: var(--brand-500); background: rgba(38,207,124,.1); border-left-color: var(--brand-500); font-weight: 600; }
+  .nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; border-radius: var(--radius-pill); padding: 1px 7px; }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .main { flex: 1; padding: 32px 40px; overflow-y: auto; }
+
+  .btn { height: 38px; border-radius: var(--radius-control); padding: 0 18px; font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--brand-500); color: var(--ink-950); }
+  .btn-primary:hover { background: var(--brand-600); }
+  .btn-ghost { background: transparent; color: var(--ink-800); border: 1.5px solid var(--border); }
+  .btn-sm { height: 30px; padding: 0 12px; font-size: 12px; border-radius: 8px; }
+
+  /* Page header */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  .page-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .page-title { font-size: 26px; font-weight: 800; color: var(--ink-950); letter-spacing: -.02em; }
+  .page-subtitle { color: var(--ink-600); font-size: 14px; margin-top: 4px; }
+  .version-badge { background: var(--ink-950); color: var(--brand-500); font-size: 12px; font-weight: 700; border-radius: var(--radius-pill); padding: 4px 12px; border: 1.5px solid var(--brand-500); }
+  .active-badge { background: var(--brand-100); color: var(--brand-600); font-size: 12px; font-weight: 700; border-radius: var(--radius-pill); padding: 4px 12px; display: inline-flex; align-items: center; gap: 5px; }
+  .active-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand-500); display: inline-block; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: var(--shadow-1); padding: 20px 22px; }
+  .stat-num { font-size: 28px; font-weight: 800; color: var(--ink-950); }
+  .stat-label { font-size: 13px; color: var(--ink-600); margin-top: 4px; }
+  .stat-icon { font-size: 20px; margin-bottom: 8px; }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; gap: 0; }
+  .tab { padding: 11px 20px; font-size: 14px; font-weight: 600; color: var(--ink-600); cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: var(--brand-600); border-bottom-color: var(--brand-500); }
+  .tab:hover:not(.active) { color: var(--ink-800); }
+
+  /* Filter bar */
+  .filter-bar { background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: var(--shadow-1); padding: 16px 20px; margin-bottom: 18px; }
+  .filter-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .filter-label { font-size: 11px; font-weight: 600; color: var(--ink-600); text-transform: uppercase; letter-spacing: .05em; }
+  .filter-input, .filter-select { height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius-control); padding: 0 12px; font-family: inherit; font-size: 13.5px; color: var(--ink-800); background: var(--mist-50); outline: none; }
+  .filter-input:focus, .filter-select:focus { border-color: var(--brand-500); background: #fff; }
+
+  /* Two-column layout */
+  .two-col { display: flex; gap: 20px; align-items: flex-start; }
+  .col-main { flex: 1; min-width: 0; }
+  .col-side { width: 270px; min-width: 270px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Table */
+  .table-wrap { background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: var(--shadow-1); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--mist-50); border-bottom: 1.5px solid var(--border); }
+  th { padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-600); white-space: nowrap; }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--mist-50); }
+
+  /* Chips */
+  .chip { display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-pill); padding: 2px 9px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .chip-active { background: var(--brand-100); color: var(--brand-600); }
+  .chip-active .chip-dot { background: var(--brand-500); }
+  .chip-inactive { background: var(--mist-100); color: var(--ink-600); }
+  .chip-inactive .chip-dot { background: var(--ink-400); }
+
+  /* Account type color badges */
+  .type-asset { background: #EFF6FF; color: #1D4ED8; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; }
+  .type-liability { background: #FFF7ED; color: #C2410C; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; }
+  .type-equity { background: #F5F3FF; color: #7C3AED; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; }
+  .type-revenue { background: var(--brand-100); color: var(--success); border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; }
+  .type-expense { background: #FEF3C7; color: var(--warning); border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; }
+  .type-control { background: #F0FFF4; color: #065F46; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; }
+
+  .code-badge { font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700; color: var(--ink-800); background: var(--mist-100); border-radius: 6px; padding: 2px 7px; }
+
+  .tbl-actions { display: flex; gap: 8px; align-items: center; }
+  .tbl-link { font-size: 12.5px; font-weight: 600; color: var(--brand-600); cursor: pointer; text-decoration: none; }
+  .tbl-link-danger { font-size: 12.5px; font-weight: 600; color: var(--ink-400); cursor: pointer; text-decoration: none; }
+  .tbl-sep { color: var(--border); }
+
+  /* Side card */
+  .side-card { background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: var(--shadow-1); overflow: hidden; }
+  .side-card-header { background: var(--mist-50); padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .side-card-title { font-size: 13px; font-weight: 700; color: var(--ink-950); }
+  .side-card-body { padding: 14px 16px; }
+
+  /* Version history items */
+  .version-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .version-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .version-num { font-size: 13px; font-weight: 800; color: var(--ink-950); min-width: 60px; }
+  .version-current { color: var(--brand-600); }
+  .version-meta { flex: 1; }
+  .version-date { font-size: 12px; color: var(--ink-600); }
+  .version-changes { font-size: 11.5px; color: var(--ink-400); margin-top: 2px; }
+  .version-link { font-size: 12px; font-weight: 600; color: var(--brand-600); cursor: pointer; text-decoration: none; white-space: nowrap; }
+
+  /* Legend */
+  .legend-grid { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .legend-label { font-size: 12.5px; color: var(--ink-800); }
+  .legend-count { margin-left: auto; font-size: 12px; color: var(--ink-400); }
+
+  /* Annotation badges */
+  .ann-badge { display: inline-flex; align-items: center; background: #EEF0FF; color: #4338CA; font-size: 11px; font-weight: 700; border-radius: var(--radius-pill); padding: 2px 9px; border: 1.5px solid #C7D2FE; }
+  .ann-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+
+  /* Pagination */
+  .pagination { display: flex; align-items: center; gap: 6px; padding: 14px 16px; border-top: 1px solid var(--border); background: var(--mist-50); }
+  .page-btn { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border); background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink-800); }
+  .page-btn.active { background: var(--brand-500); color: var(--ink-950); border-color: var(--brand-500); }
+  .page-info { color: var(--ink-400); font-size: 12.5px; margin-left: auto; }
+</style>
+</head>
+<body>
+
+<!-- Screen label bar -->
+<div class="screen-label">
+  <strong>Screen 12</strong>
+  <span>Master Ledger Management</span>
+  <span>Epic: <strong>F0.3</strong></span>
+  <span>Features: F0.3.1 · F0.3.2 · F0.3.3 · F0.3.4 · F0.3.5</span>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="logo">Azets <span>ALM</span></div>
+  <div class="topbar-right">
+    <div class="bell-wrap">
+      <div class="bell-icon">🔔</div>
+      <div class="bell-badge">3</div>
+    </div>
+    <div class="avatar">PS</div>
+    <div class="user-info">
+      Priya Sharma
+      <small>Finance Manager</small>
+    </div>
+  </div>
+</div>
+
+<div class="app-body">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section-label">Main</div>
+    <a class="nav-item" href="#"><span class="nav-icon">⊞</span> Dashboard</a>
+    <a class="nav-item" href="#"><span class="nav-icon">↑</span> Upload Accounts</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⇄</span> Mapping Engine</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⚠</span> Exception Queue <span class="nav-badge">7</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">✎</span> Manual Workbench</a>
+    <a class="nav-item" href="#"><span class="nav-icon">↻</span> Cozone Sync</a>
+    <a class="nav-item" href="#"><span class="nav-icon">📋</span> Audit Reports</a>
+
+    <div class="sidebar-section-label">Management</div>
+    <a class="nav-item" href="#"><span class="nav-icon">🕐</span> History Portal</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Bulk Operations</a>
+    <a class="nav-item active" href="#"><span class="nav-icon">📒</span> Master Ledger</a>
+    <a class="nav-item" href="#"><span class="nav-icon">⚖</span> Rules Engine</a>
+
+    <div class="sidebar-section-label">Admin</div>
+    <a class="nav-item" href="#"><span class="nav-icon">👥</span> Users & Access</a>
+    <a class="nav-item" href="#"><span class="nav-icon">❓</span> Help & Support</a>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title-row">
+          <div class="page-title">Azets Master Ledger</div>
+          <span class="version-badge">v2024.3</span>
+          <span class="active-badge"><span class="active-dot"></span>Active</span>
+        </div>
+        <div style="color:var(--ink-600);font-size:14px;margin-top:5px;">Central repository of Azets chart of accounts — used as target for all client mappings</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="btn btn-ghost">↓ Export CSV</button>
+        <button class="btn btn-primary">+ Add Account</button>
+      </div>
+    </div>
+
+    <div class="ann-row">
+      <span class="ann-badge">F0.3.2 Ledger Maintenance UI</span>
+      <span class="ann-badge">F0.3.3 Ledger Versioning</span>
+      <span class="ann-badge">F0.3.4 Ledger Classification</span>
+      <span class="ann-badge">F0.3.5 Ledger Audit Tracking</span>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-num">1,247</div>
+        <div class="stat-label">Total Accounts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🗂</div>
+        <div class="stat-num">8</div>
+        <div class="stat-label">Account Types</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-num" style="font-size:20px;">14 Aug 2026</div>
+        <div class="stat-label">Last Updated</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active">Browse Ledger</div>
+      <div class="tab">Import <span style="font-size:11px;color:var(--ink-400);margin-left:4px;">(F0.3.1)</span></div>
+      <div class="tab">Version History</div>
+      <div class="tab">Audit Log <span style="font-size:11px;color:var(--ink-400);margin-left:4px;">(F0.3.5)</span></div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label">Search</span>
+          <input class="filter-input" type="text" placeholder="Code, name, or keyword…" style="width:220px">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Account Type</span>
+          <select class="filter-select" style="width:160px">
+            <option>All Types</option>
+            <option>Assets</option>
+            <option>Liabilities</option>
+            <option>Equity</option>
+            <option>Revenue</option>
+            <option>Expense</option>
+            <option>Control</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Status</span>
+          <select class="filter-select" style="width:130px">
+            <option>All Statuses</option>
+            <option>Active</option>
+            <option>Inactive</option>
+          </select>
+        </div>
+        <div class="filter-group" style="margin-top:auto">
+          <button class="btn btn-ghost">🔍 Filter</button>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:flex-end;font-size:12.5px;color:var(--ink-400);padding-bottom:8px;">
+          Showing 12 of 1,247 accounts
+        </div>
+      </div>
+    </div>
+
+    <!-- Two-column layout: table + sidebar -->
+    <div class="two-col">
+      <div class="col-main">
+
+        <!-- Ledger table — F0.3.2 -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Classification</th>
+                <th>Parent</th>
+                <th>Status</th>
+                <th>Last Modified</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="code-badge">AZT-1000</span></td>
+                <td><strong>Cash and Cash Equivalents</strong></td>
+                <td><span class="type-asset">Asset</span></td>
+                <td>Current</td>
+                <td><span class="code-badge" style="color:var(--ink-400);">—</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>14 Aug 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-1100</span></td>
+                <td><strong>Trade Receivables</strong></td>
+                <td><span class="type-asset">Asset</span></td>
+                <td>Current</td>
+                <td><span class="code-badge">AZT-1000</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>14 Aug 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-1200</span></td>
+                <td><strong>Other Current Assets</strong></td>
+                <td><span class="type-asset">Asset</span></td>
+                <td>Current</td>
+                <td><span class="code-badge">AZT-1000</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>02 Jul 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-1500</span></td>
+                <td><strong>Property, Plant & Equipment</strong></td>
+                <td><span class="type-asset">Asset</span></td>
+                <td>Non-current</td>
+                <td><span class="code-badge" style="color:var(--ink-400);">—</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>02 Jul 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-2000</span></td>
+                <td><strong>Trade Payables</strong></td>
+                <td><span class="type-liability">Liability</span></td>
+                <td>Current</td>
+                <td><span class="code-badge" style="color:var(--ink-400);">—</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>14 Aug 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-2100</span></td>
+                <td><strong>Accrued Liabilities</strong></td>
+                <td><span class="type-liability">Liability</span></td>
+                <td>Current</td>
+                <td><span class="code-badge">AZT-2000</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>14 Aug 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-2500</span></td>
+                <td><strong>Long-term Debt</strong></td>
+                <td><span class="type-liability">Liability</span></td>
+                <td>Non-current</td>
+                <td><span class="code-badge" style="color:var(--ink-400);">—</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>02 Jul 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-3000</span></td>
+                <td><strong>Retained Earnings</strong></td>
+                <td><span class="type-equity">Equity</span></td>
+                <td>Capital</td>
+                <td><span class="code-badge" style="color:var(--ink-400);">—</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>02 Jul 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-4000</span></td>
+                <td><strong>Operating Revenue</strong></td>
+                <td><span class="type-revenue">Revenue</span></td>
+                <td>Trading</td>
+                <td><span class="code-badge" style="color:var(--ink-400);">—</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>14 Aug 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-4100</span></td>
+                <td><strong>Interest Income</strong></td>
+                <td><span class="type-revenue">Revenue</span></td>
+                <td>Non-trading</td>
+                <td><span class="code-badge">AZT-4000</span></td>
+                <td><span class="chip chip-inactive"><span class="chip-dot"></span>Inactive</span></td>
+                <td>15 Mar 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link" href="#" style="color:var(--brand-600);">Activate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-5000</span></td>
+                <td><strong>Cost of Sales</strong></td>
+                <td><span class="type-expense">Expense</span></td>
+                <td>Direct</td>
+                <td><span class="code-badge" style="color:var(--ink-400);">—</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>14 Aug 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="code-badge">AZT-9000</span></td>
+                <td><strong>Intercompany Control</strong></td>
+                <td><span class="type-control">Control</span></td>
+                <td>Control A/C</td>
+                <td><span class="code-badge" style="color:var(--ink-400);">—</span></td>
+                <td><span class="chip chip-active"><span class="chip-dot"></span>Active</span></td>
+                <td>02 Jul 2026</td>
+                <td>
+                  <div class="tbl-actions">
+                    <a class="tbl-link" href="#">Edit</a>
+                    <span class="tbl-sep">|</span>
+                    <a class="tbl-link-danger" href="#">Deactivate</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <span style="color:var(--ink-400);font-size:12.5px;">… 105</span>
+            <div class="page-info">1,247 total accounts</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar panels -->
+      <div class="col-side">
+
+        <!-- Version history — F0.3.3 -->
+        <div class="side-card">
+          <div class="side-card-header">
+            <span class="side-card-title">📌 Version History</span>
+            <span class="ann-badge" style="font-size:10px;">F0.3.3</span>
+          </div>
+          <div class="side-card-body">
+            <div class="version-item">
+              <div class="version-num version-current">v2024.3</div>
+              <div class="version-meta">
+                <div class="version-date">14 Aug 2026 <strong style="color:var(--brand-500);font-size:11px;margin-left:4px;">● Current</strong></div>
+                <div class="version-changes">+12 accounts · 3 modified · 1 removed</div>
+              </div>
+            </div>
+            <div class="version-item">
+              <div class="version-num">v2024.2</div>
+              <div class="version-meta">
+                <div class="version-date">02 Jul 2026</div>
+                <div class="version-changes">+8 accounts · 5 modified</div>
+              </div>
+              <a class="version-link" href="#">Diff</a>
+            </div>
+            <div class="version-item">
+              <div class="version-num">v2024.1</div>
+              <div class="version-meta">
+                <div class="version-date">15 Apr 2026</div>
+                <div class="version-changes">+22 accounts · 0 modified</div>
+              </div>
+              <a class="version-link" href="#">Diff</a>
+            </div>
+            <div class="version-item">
+              <div class="version-num">v2023.4</div>
+              <div class="version-meta">
+                <div class="version-date">09 Dec 2025</div>
+                <div class="version-changes">Initial Q4 release · 1,204 accounts</div>
+              </div>
+              <a class="version-link" href="#">Diff</a>
+            </div>
+            <div style="padding-top:12px;">
+              <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;">+ Publish new version</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Classification legend — F0.3.4 -->
+        <div class="side-card">
+          <div class="side-card-header">
+            <span class="side-card-title">🎨 Account Type Legend</span>
+            <span class="ann-badge" style="font-size:10px;">F0.3.4</span>
+          </div>
+          <div class="side-card-body">
+            <div class="legend-grid">
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:#DBEAFE;border:1.5px solid #93C5FD;"></div>
+                <span class="legend-label">Assets</span>
+                <span class="legend-count">386 accounts</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:#FFEDD5;border:1.5px solid #FDBA74;"></div>
+                <span class="legend-label">Liabilities</span>
+                <span class="legend-count">312 accounts</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:#EDE9FE;border:1.5px solid #C4B5FD;"></div>
+                <span class="legend-label">Equity</span>
+                <span class="legend-count">88 accounts</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:#DCFCE7;border:1.5px solid #86EFAC;"></div>
+                <span class="legend-label">Revenue</span>
+                <span class="legend-count">156 accounts</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:#FEF3C7;border:1.5px solid #FCD34D;"></div>
+                <span class="legend-label">Expenses</span>
+                <span class="legend-count">243 accounts</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:#D1FAE5;border:1.5px solid #6EE7B7;"></div>
+                <span class="legend-label">Control A/C</span>
+                <span class="legend-count">62 accounts</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import collapsed — F0.3.1 -->
+        <div class="side-card">
+          <div class="side-card-header">
+            <span class="side-card-title">↑ Quick Import</span>
+            <span class="ann-badge" style="font-size:10px;">F0.3.1</span>
+          </div>
+          <div class="side-card-body">
+            <div style="border: 2px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; background: var(--mist-50);">
+              <div style="font-size:20px;margin-bottom:6px;">📁</div>
+              <div style="font-size:12.5px;color:var(--ink-600);">Drop CSV / XLSX here or</div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:8px;">Browse file</button>
+            </div>
+            <div style="margin-top:10px;font-size:11.5px;color:var(--ink-400);">⚠ Importing will create a new ledger version. Current version v2024.3 will be archived.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

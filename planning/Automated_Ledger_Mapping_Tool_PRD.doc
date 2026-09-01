@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>Automated Ledger Mapping Tool</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    /* Word page setup */
+    @page {
+      size: 21cm 29.7cm;
+      margin: 2.5cm 2cm;
+      mso-header-margin: 1cm;
+      mso-footer-margin: 1cm;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+
+    @page { size: A4 portrait; margin: 0; }
+
+    html, body {
+      height: 100%;
+      font-size: 13px;
+      color: #1a1a2e;
+      background: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .page-table thead { display: table-header-group; }
+    .page-table tfoot { display: table-footer-group; }
+    .page-table tbody { display: table-row-group; }
+
+    /* ── Header ── */
+    .header-main {
+      background: #12121e;
+      border-top: 2px solid #7c3aed;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 40px;
+      height: 72px;
+    }
+    .aava-logo { display: flex; align-items: center; gap: 10px; }
+    .aava-wordmark { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: 1px; text-transform: uppercase; }
+    .aava-dot { display: inline-block; width: 8px; height: 8px; background: #7c3aed;
+                border-radius: 50%; margin: 0 4px; vertical-align: middle; }
+    .aava-sub { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.60);
+                text-transform: uppercase; letter-spacing: 2px; }
+    .header-pill { background: #333333;
+                   color: #fff; font-size: 18px; font-weight: 600; padding: 7px 20px; font-style: italic;
+                   border-radius: 999px; white-space: nowrap; letter-spacing: 0.3px; }
+    .header-meta { background: #fff; border-bottom: 1px solid #e2e8f0;
+                   padding: 6px 40px; font-size: 11px; color: #64748b; }
+
+    /* ── Footer ── */
+    .footer-info { background: #fff; border-top: 1px solid #e2e8f0; display: flex;
+                   justify-content: space-between; align-items: center;
+                   padding: 8px 40px; font-size: 11px; color: #64748b; }
+    .footer-info .f-center { font-weight: 500; color: #475569; text-align: center; }
+    .footer-brand { background: linear-gradient(90deg, #1e1040 0%, #12121e 60%, #1e1040 100%);
+                    border-bottom: 2px solid #7c3aed; padding: 8px 40px;
+                    text-align: center; font-size: 10px; color: rgba(255,255,255,0.55);
+                    letter-spacing: 0.3px; }
+    .footer-brand strong { color: rgba(255,255,255,0.80); font-weight: 600; }
+    .footer-brand .bull  { color: #7c3aed; padding: 0 5px; }
+
+    /* ── Body cell ── */
+    .body-cell { padding: 28px 48px 20px 48px; vertical-align: top; }
+
+    /* ── Context card ── */
+    .context-card { background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+                    padding: 16px 24px; border-radius: 10px; margin-bottom: 24px;
+                    border-left: 4px solid #7c3aed; }
+    .context-card h2 { font-size: 10px; font-weight: 700; color: #7c3aed;
+                       text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+    .context-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+    .context-item h3 { font-size: 10px; font-weight: 600; color: #94a3b8;
+                       text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .context-item p { font-size: 13px; color: #334155; }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 22px; }
+    .section-title { display: block; width: 100%; font-size: 14px; font-style: italic;
+                     font-weight: 600; margin-bottom: 12px; padding: 10px 16px;
+                     border-radius: 4px; border-left-width: 4px; border-left-style: solid; }
+    .st-0 { background:#eff6ff; border-left-color:#3b82f6; color:#1e3a5f; }
+    .st-1 { background:#ecfdf5; border-left-color:#10b981; color:#134e3a; }
+    .st-2 { background:#f5f3ff; border-left-color:#7c3aed; color:#2e1065; }
+    .st-3 { background:#fff7ed; border-left-color:#f97316; color:#7c2d12; }
+    .st-4 { background:#f0f9ff; border-left-color:#0ea5e9; color:#0c4a6e; }
+
+    .section-content { font-size: 13px; color: #334155; line-height: 1.75; }
+    .section-content p           { margin-bottom: 9px; }
+    .section-content ul,
+    .section-content ol          { margin-left: 18px; margin-bottom: 9px; }
+    .section-content li          { margin-bottom: 4px; }
+    .section-content h4          { font-size: 13px; font-weight: 600; color: #1a1a2e; margin: 12px 0 5px 0; }
+    .section-content hr          { border: none; border-top: 1px solid #e2e8f0; margin: 9px 0; }
+    .section-content strong      { font-weight: 600; color: #1a1a2e; }
+
+    /* Word-friendly overrides */
+    .header-main  { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .footer-brand { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Word header / footer via mso divs */
+    div.header { display: none; }
+    div.footer { display: none; }
+  </style>
+</head>
+<body>
+  
+<table class="page-table">
+  <thead>
+    <tr><td style="padding:0;">
+      <div class="header-main">
+  
+        <div class="header-pill">Product Requirements Document</div>
+      </div>
+      
+    </td></tr>
+  </thead>
+  <tfoot>
+    <tr><td style="padding:0;">
+      <div class="footer-info">
+        <span></span>
+        <span class="f-center">CONFIDENTIAL &mdash; Internal Use Only</span>
+        <span></span>
+      </div>
+      <div class="footer-brand">
+        <strong>AAVA&trade; Product Studio</strong>
+        <span class="bull">&bull;</span> Powered by Ascendion
+        <span class="bull">&bull;</span> Engineering to the Power of AI&trade;
+      </div>
+    </td></tr>
+  </tfoot>
+  <tbody>
+    <tr><td class="body-cell">
+     <!-- 
+    <div class="context-card">
+      <h2>Context &amp; Inputs</h2>
+      <div class="context-grid">
+        <div class="context-item"><h3>Title</h3><p>Automated Ledger Mapping Tool</p></div>
+        <div class="context-item"><h3>Description</h3><p>The Automated Ledger Mapping Tool for Azets Cozone streamlines the integration of acquired firms' legacy bookkeeping accounts into Azets' standardized master ledger system. Designed for finance and accounting teams managing mergers and acquisitions, the tool leverages AI and rule-based algorithms to automate account mapping, reduce manual errors, and accelerate onboarding. It features a user-friendly interface for uploading legacy account structures, intelligent mapping with suggestions and ambiguity flags, manual override capabilities, audit-ready reporting, and direct integration with Cozone. Success is measured by reduced mapping errors and faster integration timelines.</p></div>
+        
+      </div>
+    </div>  -->
+      
+    <div class="section">
+      <div class="section-title st-0">Problem Statement</div>
+      <div class="section-content"><strong>Current State:</strong>
+<p>Manual mapping of Muldoon's legacy bookkeeping accounts to Azets' master ledger during post-acquisition integration is slow, error-prone, and relies on Excel spreadsheets, causing costly mistakes and delays.</p>
+
+<strong>Impact & Affected Stakeholders:</strong>
+<ul><li>Finance teams at Azets</li>
+<li>Accounting teams at Muldoon</li>
+<li>Mid-to-large accounting firms managing M&A</li></ul>
+
+<strong>Why Now:</strong>
+<p>High, due to increasing M&A activity and the need for rapid, error-free financial integration.</p>
+
+<strong>Quantitative Scope:</strong>
+<p>Current manual processes result in an average of 15% mapping errors and extend onboarding timelines by 2-4 weeks per acquisition.</p></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-1">Proposed Solution</div>
+      <div class="section-content"><strong>Approach:</strong>
+<p>Develop an AI- and rule-based SaaS tool integrated with Azets Cozone, enabling automated mapping of legacy account codes to Azets' master ledger, with user input for ambiguous cases and audit-ready reporting.</p>
+
+<strong>Key Decisions:</strong>
+<ul><li>Direct integration with Cozone for real-time ledger updates</li>
+<li>AI-driven mapping suggestions with manual override</li>
+<li>Audit trail generation for compliance</li></ul>
+
+<strong>Trade-offs:</strong>
+<ul><li>Initial training of AI models may require historical mapping data</li>
+<li>Manual override increases flexibility but may introduce human error</li>
+<li>Deep integration with Cozone limits applicability to other platforms</li></ul></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-2">Target Users & Personas</div>
+      <div class="section-content"><strong>Azets Finance Lead</strong> _(Finance Manager)_
+
+<p>Goals:</p>
+<ul><li>Integrate acquired firms quickly</li>
+<li>Ensure accurate ledger mapping</li>
+<li>Maintain audit compliance</li></ul>
+
+<p>Pain Points:</p>
+<ul><li>Manual mapping is tedious and error-prone</li>
+<li>Excel-based processes lack auditability</li>
+<li>Ambiguous account codes slow down integration</li></ul>
+
+<p>Behavior Patterns:</p>
+<ul><li>Works in project teams during M&A</li>
+<li>Reviews mapping suggestions</li>
+<li>Requires audit-ready documentation</li></ul>
+
+<hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0;">
+
+<strong>Muldoon Accountant</strong> _(Accountant)_
+
+<p>Goals:</p>
+<ul><li>Transition legacy accounts smoothly</li>
+<li>Minimize disruption to ongoing operations</li></ul>
+
+<p>Pain Points:</p>
+<ul><li>Unfamiliarity with Azets ledger codes</li>
+<li>Risk of misclassification during mapping</li></ul>
+
+<p>Behavior Patterns:</p>
+<ul><li>Uploads legacy account structures</li>
+<li>Collaborates with Azets finance team</li></ul>
+
+<hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0;"></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-3">User Stories & Use Cases</div>
+      <div class="section-content"><strong>US1</strong> — Priority: High
+<p>As a <strong>Finance Manager</strong>, Upload a legacy account structure for mapping, Accelerate onboarding and reduce manual effort</p>
+
+<strong>US2</strong> — Priority: High
+<p>As a <strong>Finance Manager</strong>, Receive AI-generated mapping suggestions, Reduce mapping errors and speed up integration</p>
+
+<strong>US3</strong> — Priority: High
+<p>As a <strong>Finance Manager</strong>, Manually override AI mapping suggestions, Ensure accuracy in ambiguous cases</p>
+
+<strong>US4</strong> — Priority: Medium
+<p>As a <strong>Accountant</strong>, Flag ambiguous account codes for review, Prevent misclassification and ensure correct mapping</p>
+
+<strong>US5</strong> — Priority: High
+<p>As a <strong>Finance Manager</strong>, Download an audit-ready mapping report, Facilitate compliance and documentation</p>
+
+<strong>US6</strong> — Priority: Medium
+<p>As a <strong>Accountant</strong>, Handle accounts with missing or duplicate codes, Resolve edge cases without errors</p>
+
+<strong>US7</strong> — Priority: High
+<p>As a <strong>Finance Manager</strong>, Integrate mapped accounts directly into Cozone, Eliminate manual ledger updates</p>
+
+<strong>US8</strong> — Priority: Medium
+<p>As a <strong>Accountant</strong>, Receive notifications for mapping errors, Quickly address issues and maintain accuracy</p>
+
+<strong>US9</strong> — Priority: Medium
+<p>As a <strong>Finance Manager</strong>, View mapping history for audit purposes, Ensure traceability and compliance</p>
+
+<strong>US10</strong> — Priority: Low
+<p>As a <strong>Accountant</strong>, Access help or support for mapping process, Reduce onboarding friction</p></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-4">Functional Requirements</div>
+      <div class="section-content"><strong>Must Have:</strong>
+<ul><li><strong>FR1</strong>: The system shall allow users to upload legacy account structures in CSV, XLSX, or XML format.</li>
+<li><strong>FR2</strong>: The system shall automatically map legacy account codes to Azets master ledger codes using AI and rule-based algorithms.</li>
+<li><strong>FR3</strong>: The system shall flag ambiguous mappings and prompt users for manual review and override.</li>
+<li><strong>FR4</strong>: The system shall generate audit-ready mapping reports including mapping decisions, overrides, and timestamps.</li>
+<li><strong>FR5</strong>: The system shall integrate directly with Cozone to update the master ledger with mapped accounts.</li>
+<li><strong>FR6</strong>: The system shall provide error notifications for failed mappings or data inconsistencies.</li></ul>
+
+<strong>Should Have:</strong>
+<ul><li><strong>FR7</strong>: The system should allow users to view mapping history and download previous reports.</li>
+<li><strong>FR8</strong>: The system should support bulk mapping for multiple firms in a single session.</li>
+<li><strong>FR9</strong>: The system should provide contextual help and support resources within the interface.</li></ul>
+
+<strong>Nice to Have:</strong>
+<ul><li><strong>FR10</strong>: The system may offer predictive analytics to estimate mapping accuracy before finalization.</li>
+<li><strong>FR11</strong>: The system may allow customization of mapping rules for partner firms.</li></ul></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-0">Non-Functional Requirements</div>
+      <div class="section-content"><strong>Performance:</strong>
+<p>Mapping operations shall complete within 60 seconds for uploads up to 10,000 accounts.</p>
+
+<strong>Security:</strong>
+<p>All data transfers and storage shall be encrypted using TLS 1.2+ and AES-256; access controls must comply with GDPR and Azets internal policies.</p>
+
+<strong>Scalability:</strong>
+<p>The system shall support concurrent mapping sessions for up to 100 firms and process up to 1 million accounts per month.</p>
+
+<strong>Accessibility:</strong>
+<p>The interface shall meet WCAG 2.1 AA standards, including keyboard navigation and screen reader compatibility.</p>
+
+<strong>Reliability:</strong>
+<p>System uptime shall be 99.9% monthly, with automated failover and backup for mapping data.</p></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-1">Scope & Constraints</div>
+      <div class="section-content"><strong>In Scope:</strong>
+<ul><li>Automated mapping of legacy accounts to Azets master ledger</li>
+<li>Manual override and ambiguity flagging</li>
+<li>Audit-ready reporting</li>
+<li>Direct integration with Cozone</li>
+<li>Bulk mapping support</li></ul>
+
+<strong>Out of Scope:</strong>
+<ul><li>Mapping to non-Azets ledger systems</li>
+<li>Automated reconciliation of financial transactions</li>
+<li>Legacy data cleansing beyond account structure</li></ul>
+
+<strong>Constraints:</strong>
+<ul><li>Integration limited to Cozone platform</li>
+<li>AI mapping accuracy dependent on historical data availability</li>
+<li>User uploads must conform to specified file formats</li></ul></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-2">Success Metrics & KPIs</div>
+      <div class="section-content"><strong>Reduction in mapping errors</strong>
+<ul><li>Baseline: 15% error rate (manual process)</li>
+<li>Target: <2% error rate</li>
+<li>Measurement: Audit of mapping reports per integration project</li>
+<li>Timeline: Within 6 months of launch</li></ul>
+
+<strong>Time spent per integration project</strong>
+<ul><li>Baseline: 2-4 weeks (manual process)</li>
+<li>Target: <3 days</li>
+<li>Measurement: Average time from upload to ledger update</li>
+<li>Timeline: Within 3 months of launch</li></ul>
+
+<strong>Adoption rate among Azets finance teams</strong>
+<ul><li>Baseline: 0%</li>
+<li>Target: 80% of M&A projects using tool</li>
+<li>Measurement: Usage analytics from Cozone integration</li>
+<li>Timeline: Within 12 months</li></ul>
+
+<strong>Audit compliance rate</strong>
+<ul><li>Baseline: 70% (manual process)</li>
+<li>Target: 100% with audit-ready reports</li>
+<li>Measurement: Internal audit review</li>
+<li>Timeline: Within 6 months</li></ul>
+
+<strong>Revenue from SaaS subscriptions</strong>
+<ul><li>Baseline: N/A</li>
+<li>Target: Tiered pricing revenue targets as defined by business</li>
+<li>Measurement: Monthly subscription analytics</li>
+<li>Timeline: Within 12 months</li></ul></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-3">Dependencies & Risks</div>
+      <div class="section-content"><strong>Dependencies:</strong>
+<ul><li>Cozone platform API availability</li>
+<li>Historical mapping data for AI training</li>
+<li>User access to legacy account files</li></ul>
+
+<strong>Risks:</strong>
+<ul><li><strong>Cozone API changes or downtime</strong></li></ul>
+<p>  - Likelihood: Medium | Impact: High</p>
+<p>  - Mitigation: Monitor API updates, implement versioning, and maintain fallback manual export/import</p>
+<ul><li><strong>Insufficient historical mapping data for AI accuracy</strong></li></ul>
+<p>  - Likelihood: Medium | Impact: Medium</p>
+<p>  - Mitigation: Start with rule-based mapping, gradually improve AI with ongoing data collection</p>
+<ul><li><strong>User uploads with incorrect file formats</strong></li></ul>
+<p>  - Likelihood: High | Impact: Medium</p>
+<p>  - Mitigation: Implement strict file validation and clear error messaging</p>
+<ul><li><strong>Data privacy breaches</strong></li></ul>
+<p>  - Likelihood: Low | Impact: High</p>
+<p>  - Mitigation: Enforce encryption, access controls, and regular security audits</p>
+<ul><li><strong>Resistance to adoption by finance teams</strong></li></ul>
+<p>  - Likelihood: Medium | Impact: Medium</p>
+<p>  - Mitigation: Provide training, support, and demonstrate ROI with pilot projects</p></div>
+    </div>
+    <div class="section">
+      <div class="section-title st-4">Acceptance Criteria</div>
+      <div class="section-content"><strong>AC1: Legacy account upload</strong>
+<ul><li>GIVEN A user is on the upload page with a valid CSV file</li>
+<li>WHEN They upload the file</li>
+<li>THEN:</li></ul>
+<p>  - The system processes the file within 60 seconds</p>
+<p>  - A confirmation message is displayed</p>
+
+<strong>AC2: AI mapping suggestions</strong>
+<ul><li>GIVEN A legacy account structure is uploaded</li>
+<li>WHEN The system completes mapping</li>
+<li>THEN:</li></ul>
+<p>  - AI-generated mapping suggestions are displayed</p>
+<p>  - Ambiguous mappings are flagged</p>
+
+<strong>AC3: Manual override</strong>
+<ul><li>GIVEN A mapping suggestion is flagged as ambiguous</li>
+<li>WHEN The user selects manual override</li>
+<li>THEN:</li></ul>
+<p>  - The user can select a master ledger code</p>
+<p>  - The override is logged in the audit report</p>
+
+<strong>AC4: Audit-ready report generation</strong>
+<ul><li>GIVEN Mapping is finalized</li>
+<li>WHEN The user requests a report</li>
+<li>THEN:</li></ul>
+<p>  - A downloadable PDF/CSV report is generated</p>
+<p>  - Report includes mapping decisions, overrides, and timestamps</p>
+
+<strong>AC5: Cozone integration</strong>
+<ul><li>GIVEN Mapping is complete and approved</li>
+<li>WHEN The user initiates ledger update</li>
+<li>THEN:</li></ul>
+<p>  - Mapped accounts are updated in Cozone within 2 minutes</p>
+<p>  - A success notification is displayed</p>
+
+<strong>AC6: Error notification</strong>
+<ul><li>GIVEN A mapping operation fails due to data inconsistency</li>
+<li>WHEN The system detects the error</li>
+<li>THEN:</li></ul>
+<p>  - An error notification is sent to the user</p>
+<p>  - Notification includes actionable next steps</p>
+
+<strong>AC7: Mapping history access</strong>
+<ul><li>GIVEN A user is on the mapping history page</li>
+<li>WHEN They select a previous mapping session</li>
+<li>THEN:</li></ul>
+<p>  - The system displays session details and allows report download</p>
+
+<strong>AC8: Accessibility compliance</strong>
+<ul><li>GIVEN A user navigates the interface with a screen reader</li>
+<li>WHEN They access mapping suggestions</li>
+<li>THEN:</li></ul>
+<p>  - All content is accessible and labeled according to WCAG 2.1 AA</p>
+
+<strong>AC9: Bulk mapping</strong>
+<ul><li>GIVEN A user uploads multiple firm account files</li>
+<li>WHEN The system processes the files</li>
+<li>THEN:</li></ul>
+<p>  - Mapping suggestions are generated for each firm</p>
+<p>  - Audit reports are available for each session</p>
+
+<strong>AC10: Help and support</strong>
+<ul><li>GIVEN A user encounters a mapping issue</li>
+<li>WHEN They access help resources</li>
+<li>THEN:</li></ul>
+<p>  - Contextual help is displayed</p>
+<p>  - User can contact support if needed</p></div>
+    </div>
+    </td></tr>
+  </tbody>
+</table>
+</body>
+</html>

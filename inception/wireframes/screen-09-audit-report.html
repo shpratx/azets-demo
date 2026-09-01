@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 09 — Audit Reports | Azets ALM</title>
+<style>
+  :root {
+    --brand-500: #26CF7C;
+    --ink-950: #0F0F0F;
+    --ink-800: #2B2B2B;
+    --ink-600: #5D625F;
+    --ink-400: #939A96;
+    --canvas: #FFFFFF;
+    --mist-50: #F7F8F7;
+    --mist-100: #EEF1EF;
+    --border: #D9DEDB;
+    --danger: #B42318;
+    --success: #16794D;
+    --warning: #9A6400;
+    --brand-100: #DDF8EA;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+    --radius-control: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: var(--mist-50);
+    color: var(--ink-800);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .screen-label-bar {
+    background: var(--ink-950); color: var(--brand-500);
+    font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: 6px 20px; display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+  }
+  .screen-label-bar span { color: var(--ink-400); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  .topbar {
+    height: 64px; background: var(--ink-950); border-bottom: 3px solid var(--brand-500);
+    display: flex; align-items: center; padding: 0 24px; gap: 20px; flex-shrink: 0; z-index: 100;
+  }
+  .topbar-logo { font-size: 18px; font-weight: 800; color: var(--canvas); letter-spacing: -.02em; }
+  .topbar-logo em { color: var(--brand-500); font-style: normal; }
+  .topbar-divider { width: 1px; height: 28px; background: #2a2a2a; }
+  .topbar-title { color: var(--ink-400); font-size: 13px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .topbar-firm-badge {
+    background: #1a1a1a; border: 1px solid #333; color: var(--ink-400);
+    font-size: 12px; padding: 5px 12px; border-radius: var(--radius-pill);
+  }
+  .topbar-firm-badge strong { color: var(--canvas); }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--brand-500);
+    color: var(--ink-950); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+
+  .app-shell { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: 240px; background: var(--ink-950); flex-shrink: 0;
+    display: flex; flex-direction: column; padding: 16px 0;
+    overflow-y: auto; border-right: 1px solid #1a1a1a;
+  }
+  .sidebar-section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: #404040; padding: 12px 20px 6px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+    color: var(--ink-400); font-size: 13px; cursor: pointer;
+    border-left: 3px solid transparent; transition: all .15s; text-decoration: none;
+  }
+  .sidebar-item:hover { color: var(--canvas); background: rgba(255,255,255,.04); }
+  .sidebar-item.active {
+    color: var(--brand-500); background: rgba(38,207,124,.1);
+    border-left-color: var(--brand-500); font-weight: 600;
+  }
+  .sidebar-item .icon { font-size: 15px; width: 18px; text-align: center; }
+  .sidebar-badge {
+    margin-left: auto; background: var(--danger); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 6px;
+    border-radius: var(--radius-pill); min-width: 18px; text-align: center;
+  }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--mist-50); }
+
+  .page-header {
+    background: var(--canvas); border-bottom: 1px solid var(--border);
+    padding: 16px 28px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
+  .page-header h1 { font-size: 20px; font-weight: 700; color: var(--ink-950); }
+  .annotation-badge {
+    display: inline-flex; align-items: center; font-size: 10px; font-weight: 700;
+    background: var(--ink-950); color: var(--brand-500); padding: 2px 8px;
+    border-radius: var(--radius-pill); letter-spacing: .04em;
+  }
+
+  .content-scroll { flex: 1; overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+  .card {
+    background: var(--canvas); border-radius: var(--radius-card);
+    border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    padding: 24px;
+  }
+  .card-title {
+    font-size: 14px; font-weight: 700; color: var(--ink-950);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Summary grid */
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  .sum-item {
+    background: var(--mist-50); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .sum-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-400); margin-bottom: 4px; }
+  .sum-value { font-size: 15px; font-weight: 700; color: var(--ink-950); }
+  .sum-value.success { color: var(--success); }
+  .sum-value.muted { color: var(--ink-400); font-size:13px; font-weight:500; }
+  .sum-value.warning { color: var(--warning); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 20px; border-radius: var(--radius-pill);
+    font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+    transition: all .15s; font-family: inherit; text-decoration: none;
+  }
+  .btn-primary { background: var(--brand-500); color: var(--ink-950); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { background: transparent; color: var(--ink-600); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--ink-400); color: var(--ink-800); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  /* Download Cards */
+  .download-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .download-card {
+    background: var(--mist-50); border: 1.5px solid var(--border); border-radius: 16px;
+    padding: 24px; display: flex; flex-direction: column; gap: 12px; transition: all .2s;
+  }
+  .download-card:hover { border-color: var(--brand-500); background: rgba(38,207,124,.04); }
+  .download-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .download-icon.pdf { background: #FEE2E2; }
+  .download-icon.csv { background: var(--brand-100); }
+  .download-title { font-size: 16px; font-weight: 700; color: var(--ink-950); }
+  .download-desc { font-size: 12px; color: var(--ink-600); line-height: 1.5; }
+  .download-meta { font-size: 11px; color: var(--ink-400); }
+  .download-meta ul { margin-left: 16px; margin-top: 4px; }
+  .download-meta li { margin-bottom: 2px; }
+
+  /* Timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .timeline-item {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .tl-left { display: flex; flex-direction: column; align-items: center; width: 52px; flex-shrink: 0; }
+  .tl-time {
+    font-size: 11px; font-weight: 700; color: var(--ink-400);
+    font-family: 'Courier New', monospace; white-space: nowrap;
+  }
+  .tl-line { flex: 1; width: 2px; background: var(--border); margin-top: 4px; min-height: 24px; }
+  .tl-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid var(--border); background: var(--canvas);
+    flex-shrink: 0; margin-top: 4px;
+  }
+  .tl-dot.green { border-color: var(--brand-500); background: var(--brand-500); }
+  .tl-dot.blue { border-color: #6366F1; background: #6366F1; }
+  .tl-dot.orange { border-color: #F59E0B; background: #F59E0B; }
+  .tl-dot.red { border-color: var(--danger); background: var(--danger); }
+  .tl-body { flex: 1; }
+  .tl-user { font-size: 13px; font-weight: 700; color: var(--ink-800); margin-bottom: 2px; }
+  .tl-user span { color: var(--ink-400); font-weight: 400; font-size: 12px; }
+  .tl-action { font-size: 12px; color: var(--ink-600); line-height: 1.4; }
+  .tl-detail {
+    margin-top: 4px; font-size: 11px; color: var(--ink-400);
+    font-family: 'Courier New', monospace; background: var(--mist-100);
+    padding: 3px 8px; border-radius: 6px; display: inline-block;
+  }
+  .tl-actor-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: var(--radius-pill); margin-right: 4px;
+  }
+  .actor-user { background: #DBEAFE; color: #1D4ED8; }
+  .actor-system { background: var(--mist-100); color: var(--ink-600); }
+  .actor-manager { background: #EDE9FE; color: #6D28D9; }
+
+  /* Table */
+  .table-card {
+    background: var(--canvas); border-radius: var(--radius-card); border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 11px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--ink-400); background: var(--mist-50);
+    border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--mist-50); }
+  td { padding: 11px 14px; font-size: 12px; color: var(--ink-800); vertical-align: middle; }
+
+  .code-mono {
+    font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700;
+    background: var(--mist-100); padding: 2px 8px; border-radius: 6px; color: var(--ink-800);
+  }
+  .code-mono.dark { background: var(--ink-950); color: var(--brand-500); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: var(--radius-pill); white-space: nowrap;
+  }
+  .chip::before { content: '●'; font-size: 7px; }
+  .chip-success { background: var(--brand-100); color: var(--success); }
+  .chip-warning { background: #FEF3C7; color: var(--warning); }
+
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--ink-950); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .pagination-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-400); padding: 12px 16px; background: var(--mist-50); border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<div class="screen-label-bar">
+  Screen 09 — Audit Report Generation
+  <span>Epic F1.7 · Features: F1.7.1 · F1.7.2 · F1.7.3 · F1.7.4 · F1.7.5</span>
+</div>
+
+<div class="topbar">
+  <div class="topbar-logo">Azets <em>ALM</em></div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-title">Account Ledger Migration</div>
+  <div class="topbar-right">
+    <div class="topbar-firm-badge">Session: <strong>A-2024-089</strong></div>
+    <div class="topbar-firm-badge">Firm: <strong>Muldoon &amp; Co</strong></div>
+    <div class="avatar">PS</div>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <nav class="sidebar">
+    <div class="sidebar-section-label">Migration</div>
+    <a class="sidebar-item" href="#"><span class="icon">📤</span> File Upload</a>
+    <a class="sidebar-item" href="#"><span class="icon">✅</span> Validation</a>
+    <a class="sidebar-item" href="#"><span class="icon">🤖</span> AI Mapping</a>
+    <a class="sidebar-item" href="#"><span class="icon">🔧</span> Manual Workbench <span class="sidebar-badge">226</span></a>
+    <a class="sidebar-item" href="#"><span class="icon">⚠️</span> Exceptions</a>
+    <a class="sidebar-item" href="#"><span class="icon">🔄</span> Cozone Sync</a>
+    <a class="sidebar-item active" href="#"><span class="icon">📋</span> Audit Reports</a>
+    <div class="sidebar-section-label" style="margin-top:12px;">Session</div>
+    <a class="sidebar-item" href="#"><span class="icon">📊</span> Dashboard</a>
+    <a class="sidebar-item" href="#"><span class="icon">⚙️</span> Settings</a>
+  </nav>
+
+  <div class="main">
+
+    <div class="page-header">
+      <h1>Audit Reports — Session A-2024-089</h1>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <span class="annotation-badge">F1.7.2 Override Audit</span>
+        <span class="annotation-badge">F1.7.3 Timeline</span>
+        <span class="annotation-badge">F1.7.4 PDF</span>
+      </div>
+    </div>
+
+    <div class="content-scroll">
+
+      <!-- Session Summary -->
+      <div class="card">
+        <div class="card-title">
+          📋 Session Summary — A-2024-089
+        </div>
+        <div class="summary-grid">
+          <div class="sum-item">
+            <div class="sum-label">Session ID</div>
+            <div class="sum-value" style="font-family:'Courier New',monospace; font-size:13px;">A-2024-089</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Firm</div>
+            <div class="sum-value">Muldoon &amp; Co</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Date</div>
+            <div class="sum-value">01 Sep 2026</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Finance Manager</div>
+            <div class="sum-value">Priya Sharma</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Total Accounts</div>
+            <div class="sum-value">3,847</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Auto-Mapped</div>
+            <div class="sum-value success">3,621</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Manual Overrides</div>
+            <div class="sum-value warning">226</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Sync Status</div>
+            <div class="sum-value muted">⏳ Pending</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report Generation -->
+      <div class="card">
+        <div class="card-title">Generate Reports</div>
+        <div class="download-grid">
+
+          <!-- PDF Card -->
+          <div class="download-card">
+            <div class="download-icon pdf">📄</div>
+            <div>
+              <div class="download-title">PDF Audit Report</div>
+              <div class="download-desc">Full compliance report with all mapping decisions, overrides, timestamps and approvals. Suitable for regulatory review and sign-off.</div>
+            </div>
+            <div class="download-meta">
+              <strong>Includes:</strong>
+              <ul>
+                <li>Session metadata &amp; approval chain</li>
+                <li>All 3,847 mapping decisions</li>
+                <li>226 override justifications</li>
+                <li>Full audit event timeline</li>
+                <li>Finance Manager signature block</li>
+              </ul>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="btn btn-primary">📄 Generate PDF</button>
+              <span style="font-size:11px; color:var(--ink-400);">Est. size ~2.4 MB</span>
+            </div>
+          </div>
+
+          <!-- CSV Card -->
+          <div class="download-card">
+            <div class="download-icon csv">📊</div>
+            <div>
+              <div class="download-title">CSV Data Export</div>
+              <div class="download-desc">Machine-readable export of all mappings for Cozone reconciliation, data verification, and downstream processing.</div>
+            </div>
+            <div class="download-meta">
+              <strong>Columns included:</strong>
+              <ul>
+                <li>legacy_code, legacy_name, legacy_type</li>
+                <li>azets_code, azets_name, mapping_method</li>
+                <li>ai_confidence, override_reason, approved_by</li>
+                <li>timestamp, session_id, reviewer</li>
+              </ul>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="btn btn-primary">📊 Export CSV</button>
+              <span style="font-size:11px; color:var(--ink-400);">3,847 rows · ~340 KB</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Timeline + Override Table side by side -->
+      <div class="two-col">
+
+        <!-- Audit Event Timeline -->
+        <div class="card" style="padding:24px;">
+          <div class="card-title" style="margin-bottom:8px;">
+            Audit Event Timeline
+            <span class="annotation-badge" style="margin-left:auto;">F1.7.3</span>
+          </div>
+          <div style="font-size:12px; color:var(--ink-400); margin-bottom:16px;">All events automatically captured · F1.7.1</div>
+
+          <div class="timeline">
+
+            <div class="timeline-item">
+              <div class="tl-left">
+                <div class="tl-time">09:14</div>
+                <div class="tl-line"></div>
+              </div>
+              <div style="width:10px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+                <div class="tl-dot blue"></div>
+              </div>
+              <div class="tl-body">
+                <div class="tl-user"><span class="tl-actor-chip actor-user">Priya Sharma</span></div>
+                <div class="tl-action">File uploaded to session</div>
+                <div class="tl-detail">muldoon-accounts.xlsx · 3,847 rows · 4.1 MB</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="tl-left">
+                <div class="tl-time">09:16</div>
+                <div class="tl-line"></div>
+              </div>
+              <div style="width:10px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+                <div class="tl-dot"></div>
+              </div>
+              <div class="tl-body">
+                <div class="tl-user"><span class="tl-actor-chip actor-system">System</span></div>
+                <div class="tl-action">Validation complete</div>
+                <div class="tl-detail">22 format errors resolved · 204 warnings generated</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="tl-left">
+                <div class="tl-time">09:18</div>
+                <div class="tl-line"></div>
+              </div>
+              <div style="width:10px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+                <div class="tl-dot"></div>
+              </div>
+              <div class="tl-body">
+                <div class="tl-user"><span class="tl-actor-chip actor-system">System · AI</span></div>
+                <div class="tl-action">AI mapping run complete</div>
+                <div class="tl-detail">3,621 auto-mapped · 226 flagged for review · avg 94.1% confidence</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="tl-left">
+                <div class="tl-time">10:03</div>
+                <div class="tl-line"></div>
+              </div>
+              <div style="width:10px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+                <div class="tl-dot orange"></div>
+              </div>
+              <div class="tl-body">
+                <div class="tl-user"><span class="tl-actor-chip actor-user">Raj Patel</span></div>
+                <div class="tl-action">Manual override: MUL-2847 → AZT-5510</div>
+                <div class="tl-detail">Reason: legacy suspense reclassified</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="tl-left">
+                <div class="tl-time">10:47</div>
+                <div class="tl-line"></div>
+              </div>
+              <div style="width:10px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+                <div class="tl-dot orange"></div>
+              </div>
+              <div class="tl-body">
+                <div class="tl-user"><span class="tl-actor-chip actor-user">Raj Patel</span></div>
+                <div class="tl-action">40 overrides completed in batch</div>
+                <div class="tl-detail">MUL-1100 to MUL-1139 · all ambiguous mapping type</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="tl-left">
+                <div class="tl-time">12:10</div>
+                <div class="tl-line"></div>
+              </div>
+              <div style="width:10px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+                <div class="tl-dot blue"></div>
+              </div>
+              <div class="tl-body">
+                <div class="tl-user"><span class="tl-actor-chip actor-user">Sarah Thompson</span></div>
+                <div class="tl-action">185 remaining overrides completed</div>
+                <div class="tl-detail">Review session · all accounts resolved</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="tl-left">
+                <div class="tl-time">13:22</div>
+                <div class="tl-line"></div>
+              </div>
+              <div style="width:10px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+                <div class="tl-dot"></div>
+              </div>
+              <div class="tl-body">
+                <div class="tl-user"><span class="tl-actor-chip actor-system">System</span></div>
+                <div class="tl-action">PDF audit report generated</div>
+                <div class="tl-detail">audit-A-2024-089-draft.pdf · 2.4 MB</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="tl-left">
+                <div class="tl-time">13:47</div>
+              </div>
+              <div style="width:10px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+                <div class="tl-dot green"></div>
+              </div>
+              <div class="tl-body">
+                <div class="tl-user"><span class="tl-actor-chip actor-manager">Priya Sharma</span> <span style="font-size:11px; color:var(--success); font-weight:700;">Finance Manager</span></div>
+                <div class="tl-action">Approved for Cozone synchronisation</div>
+                <div class="tl-detail">All 3,847 accounts confirmed · session ready for sync</div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /timeline -->
+
+        <!-- Override Details Table -->
+        <div style="display:flex; flex-direction:column; gap:0;">
+          <div class="section-header">
+            <div class="section-title">Override Details</div>
+            <span class="annotation-badge">F1.7.2</span>
+            <span style="margin-left:auto; font-size:12px; color:var(--ink-400);">226 total overrides</span>
+          </div>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Legacy Code</th>
+                  <th>Original AI Suggestion</th>
+                  <th>Final Mapping</th>
+                  <th>Approved By</th>
+                  <th>Reason</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="code-mono dark">MUL-2847</span></td>
+                  <td><span class="code-mono">AZT-5510</span></td>
+                  <td><span class="code-mono" style="background:var(--brand-100);color:var(--success);">AZT-5510</span> <span class="chip chip-success">Accepted</span></td>
+                  <td>Raj Patel</td>
+                  <td style="max-width:160px; font-size:11px; color:var(--ink-600);">Legacy suspense reclassified</td>
+                  <td style="font-size:11px; color:var(--ink-400);">10:03 01/09</td>
+                </tr>
+                <tr>
+                  <td><span class="code-mono dark">MUL-1104</span></td>
+                  <td style="color:var(--ink-400); font-size:11px; font-style:italic;">No AI match</td>
+                  <td><span class="code-mono" style="background:var(--brand-100);color:var(--success);">AZT-7710</span> <span class="chip chip-warning">Manual</span></td>
+                  <td>Raj Patel</td>
+                  <td style="max-width:160px; font-size:11px; color:var(--ink-600);">Director loan — manual match to DLA code</td>
+                  <td style="font-size:11px; color:var(--ink-400);">10:08 01/09</td>
+                </tr>
+                <tr>
+                  <td><span class="code-mono dark">MUL-3301</span></td>
+                  <td><span class="code-mono">AZT-4401</span></td>
+                  <td><span class="code-mono" style="background:var(--brand-100);color:var(--success);">AZT-4402</span> <span class="chip chip-warning">Manual</span></td>
+                  <td>Sarah Thompson</td>
+                  <td style="max-width:160px; font-size:11px; color:var(--ink-600);">Q3 deferred — maps to sub-code not parent</td>
+                  <td style="font-size:11px; color:var(--ink-400);">11:14 01/09</td>
+                </tr>
+                <tr>
+                  <td><span class="code-mono dark">MUL-0088</span></td>
+                  <td><span class="code-mono">AZT-2200</span></td>
+                  <td><span class="code-mono" style="background:var(--brand-100);color:var(--success);">AZT-2210</span> <span class="chip chip-warning">Manual</span></td>
+                  <td>Raj Patel</td>
+                  <td style="max-width:160px; font-size:11px; color:var(--ink-600);">Interco clearing specific entity sub-code</td>
+                  <td style="font-size:11px; color:var(--ink-400);">10:55 01/09</td>
+                </tr>
+                <tr>
+                  <td><span class="code-mono dark">MUL-7721</span></td>
+                  <td><span class="code-mono">AZT-3308</span></td>
+                  <td><span class="code-mono" style="background:var(--brand-100);color:var(--success);">AZT-3308</span> <span class="chip chip-success">Accepted</span></td>
+                  <td>Sarah Thompson</td>
+                  <td style="max-width:160px; font-size:11px; color:var(--ink-600);">AI suggestion confirmed after review</td>
+                  <td style="font-size:11px; color:var(--ink-400);">12:01 01/09</td>
+                </tr>
+                <tr>
+                  <td><span class="code-mono dark">MUL-5512</span></td>
+                  <td style="color:var(--ink-400); font-size:11px; font-style:italic;">No AI match</td>
+                  <td><span class="code-mono" style="background:var(--brand-100);color:var(--success);">AZT-1820</span> <span class="chip chip-warning">Manual</span></td>
+                  <td>Sarah Thompson</td>
+                  <td style="max-width:160px; font-size:11px; color:var(--ink-600);">Goodwill amortisation — new Azets code</td>
+                  <td style="font-size:11px; color:var(--ink-400);">12:18 01/09</td>
+                </tr>
+                <tr style="background:var(--mist-50);">
+                  <td colspan="6" style="text-align:center; color:var(--ink-400); font-size:12px; padding:14px;">
+                    + 220 more overrides · <a href="#" style="color:var(--brand-500); font-weight:600; text-decoration:none;">View all in PDF report →</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div><!-- /override table -->
+
+      </div><!-- /two-col -->
+
+    </div><!-- /content-scroll -->
+
+  </div><!-- /main -->
+
+</div><!-- /app-shell -->
+
+</body>
+</html>

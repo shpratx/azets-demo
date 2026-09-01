@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALM – Dashboard · F2.4</title>
+<style>
+:root{
+  --brand-500:#26CF7C;--brand-600:#1CAE68;--brand-100:#DDF8EA;
+  --ink-950:#0F0F0F;--ink-800:#2B2B2B;--ink-600:#5D625F;--ink-400:#939A96;
+  --canvas:#FFFFFF;--mist-50:#F7F8F7;--mist-100:#EEF1EF;
+  --border:#D9DEDB;--focus:#0067B8;--danger:#B42318;--success:#16794D;--warning:#9A6400;
+  --font:'Manrope',Inter,'Segoe UI',Arial,sans-serif;
+  --radius-card:18px;--radius-pill:999px;--radius-control:10px;
+  --shadow-1:0 10px 35px rgba(15,15,15,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--mist-50);color:var(--ink-950);min-height:100vh;display:flex;flex-direction:column}
+.screen-label{background:var(--ink-950);color:#fff;font-size:11px;font-weight:700;padding:6px 16px;letter-spacing:.08em;text-transform:uppercase}
+/* App shell */
+.app-shell{display:flex;flex:1;min-height:0}
+.topbar{background:var(--ink-950);height:64px;display:flex;align-items:center;padding:0 32px;gap:16px;border-bottom:3px solid var(--brand-500);flex-shrink:0}
+.logo{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.logo span{color:var(--brand-500)}
+.topbar-sub{font-size:11px;color:var(--ink-400);text-transform:uppercase;letter-spacing:.1em}
+.topbar-spacer{flex:1}
+.topbar-user{display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;background:var(--brand-500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ink-950)}
+.user-info strong{display:block;font-size:13px;color:#fff;font-weight:600}
+.user-info span{font-size:11px;color:var(--ink-400)}
+.notif-btn{width:36px;height:36px;background:var(--ink-800);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;position:relative;cursor:pointer}
+.notif-badge{position:absolute;top:2px;right:2px;width:10px;height:10px;background:var(--danger);border-radius:50%;border:2px solid var(--ink-950)}
+/* Sidebar */
+.sidebar{width:240px;background:var(--ink-950);display:flex;flex-direction:column;padding:24px 0;flex-shrink:0}
+.nav-section{margin-bottom:8px}
+.nav-section-label{font-size:10px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.12em;padding:8px 24px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 24px;font-size:14px;font-weight:500;color:var(--ink-400);cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:rgba(38,207,124,.1);color:var(--brand-500);border-left-color:var(--brand-500);font-weight:600}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px}
+/* Main content */
+.main-content{flex:1;overflow-y:auto;padding:32px 40px;display:flex;flex-direction:column;gap:28px}
+/* Page header */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between}
+.page-title{font-size:28px;font-weight:600;color:var(--ink-950);line-height:1.2}
+.page-sub{font-size:14px;color:var(--ink-600);margin-top:4px}
+.btn-primary{height:44px;background:var(--brand-500);border:none;border-radius:var(--radius-pill);padding:0 24px;font-size:14px;font-weight:650;font-family:var(--font);color:var(--ink-950);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn-ghost{height:44px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-pill);padding:0 20px;font-size:14px;font-weight:600;font-family:var(--font);color:var(--ink-800);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+/* KPI strip */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.kpi-card{background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius-card);padding:24px 28px;box-shadow:var(--shadow-1)}
+.kpi-label{font-size:12px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.kpi-value{font-size:36px;font-weight:600;color:var(--ink-950);line-height:1}
+.kpi-delta{font-size:13px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.delta-up{color:var(--success)}
+.delta-down{color:var(--danger)}
+.kpi-accent{border-top:4px solid var(--brand-500)}
+/* Section heading */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:17px;font-weight:600;color:var(--ink-950)}
+/* Activity table */
+.data-table{width:100%;border-collapse:collapse;background:var(--canvas);border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow-1);border:1px solid var(--border)}
+.data-table thead tr{background:var(--mist-50)}
+.data-table th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.data-table td{padding:14px 16px;font-size:14px;color:var(--ink-800);border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--mist-50)}
+/* Status chips */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.chip-success{background:#DCFCE7;color:var(--success)}
+.chip-success .chip-dot{background:var(--success)}
+.chip-warning{background:#FEF9C3;color:var(--warning)}
+.chip-warning .chip-dot{background:var(--warning)}
+.chip-danger{background:#FEE2E2;color:var(--danger)}
+.chip-danger .chip-dot{background:var(--danger)}
+.chip-neutral{background:var(--mist-100);color:var(--ink-600)}
+.chip-neutral .chip-dot{background:var(--ink-400)}
+/* Progress bar */
+.progress-wrap{height:8px;background:var(--mist-100);border-radius:999px;overflow:hidden}
+.progress-bar{height:100%;background:var(--brand-500);border-radius:999px}
+/* Two col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius-card);padding:24px;box-shadow:var(--shadow-1)}
+.card-title{font-size:15px;font-weight:600;color:var(--ink-950);margin-bottom:16px}
+/* Alert banner */
+.alert{display:flex;align-items:flex-start;gap:12px;background:#FEF9C3;border:1px solid #FDE047;border-radius:12px;padding:14px 18px}
+.alert-icon{font-size:18px}
+.alert-text strong{display:block;font-size:14px;font-weight:600;color:#713F12;margin-bottom:2px}
+.alert-text span{font-size:13px;color:#854D0E}
+.ann{position:absolute;background:#FBBF24;color:#000;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;white-space:nowrap;z-index:10;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="screen-label">Screen 02 — Dashboard / Home &nbsp;|&nbsp; Epic F2.4 Operational Analytics &nbsp;|&nbsp; F2.4.1 Processing Metrics · F2.4.5 KPI Dashboard</div>
+
+<div class="topbar">
+  <div class="logo">Azets <span>ALM</span></div>
+  <div class="topbar-sub">Automated Ledger Mapping</div>
+  <div class="topbar-spacer"></div>
+  <div class="notif-btn">🔔<div class="notif-badge"></div></div>
+  <div class="topbar-user">
+    <div class="avatar">PS</div>
+    <div class="user-info"><strong>Priya Sharma</strong><span>Finance Manager · Azets</span></div>
+  </div>
+</div>
+
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Primary navigation">
+    <div class="nav-section-label">Main</div>
+    <div class="nav-item active"><span class="nav-icon">⊞</span> Dashboard</div>
+    <div class="nav-item"><span class="nav-icon">↑</span> Upload Accounts</div>
+    <div class="nav-item"><span class="nav-icon">⚡</span> Mapping Engine</div>
+    <div class="nav-item"><span class="nav-icon">⚠</span> Exception Queue <span class="nav-badge">7</span></div>
+    <div class="nav-item"><span class="nav-icon">✎</span> Manual Workbench</div>
+    <div class="nav-item"><span class="nav-icon">⟳</span> Cozone Sync</div>
+    <div class="nav-item"><span class="nav-icon">📋</span> Audit Reports</div>
+    <div class="nav-section-label" style="margin-top:16px">Management</div>
+    <div class="nav-item"><span class="nav-icon">📂</span> History Portal</div>
+    <div class="nav-item"><span class="nav-icon">⊞</span> Bulk Operations</div>
+    <div class="nav-item"><span class="nav-icon">📒</span> Master Ledger</div>
+    <div class="nav-item"><span class="nav-icon">⚙</span> Rules Engine</div>
+    <div class="nav-section-label" style="margin-top:16px">Admin</div>
+    <div class="nav-item"><span class="nav-icon">👥</span> Users &amp; Access</div>
+    <div class="nav-item"><span class="nav-icon">?</span> Help &amp; Support</div>
+  </nav>
+
+  <main class="main-content" aria-label="Main content">
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-sub">Overview as of 01 Sep 2026 · Muldoon Acquisition · Session #A-2024-089</p>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn-ghost">↓ Export Report</button>
+        <button class="btn-primary">+ New Upload</button>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text">
+        <strong>7 mappings require manual review</strong>
+        <span>Ambiguous account codes flagged in the last processing run — action needed before Cozone sync can proceed.</span>
+      </div>
+      <button class="btn-primary" style="margin-left:auto;flex-shrink:0">Review now →</button>
+    </div>
+
+    <!-- KPIs -->
+    <div style="position:relative">
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-accent">
+          <div class="kpi-label">Accounts Processed</div>
+          <div class="kpi-value">3,847</div>
+          <div class="kpi-delta delta-up">▲ 12% vs last session</div>
+        </div>
+        <div class="kpi-card" style="border-top:4px solid var(--success)">
+          <div class="kpi-label">Auto-Mapped (AI)</div>
+          <div class="kpi-value">3,621</div>
+          <div class="kpi-delta delta-up">▲ 94.1% confidence avg</div>
+        </div>
+        <div class="kpi-card" style="border-top:4px solid var(--warning)">
+          <div class="kpi-label">Pending Review</div>
+          <div class="kpi-value" style="color:var(--warning)">226</div>
+          <div class="kpi-delta">Requires human input</div>
+        </div>
+        <div class="kpi-card" style="border-top:4px solid var(--ink-400)">
+          <div class="kpi-label">Mapping Error Rate</div>
+          <div class="kpi-value">1.8%</div>
+          <div class="kpi-delta delta-up">▼ vs 15% manual baseline</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two col: progress + chart placeholder -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Session Progress — Muldoon Acquisition</div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-600);margin-bottom:6px"><span>Upload &amp; Validation</span><span style="font-weight:600;color:var(--success)">Complete</span></div>
+            <div class="progress-wrap"><div class="progress-bar" style="width:100%;background:var(--success)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-600);margin-bottom:6px"><span>AI Mapping Engine</span><span style="font-weight:600;color:var(--success)">Complete</span></div>
+            <div class="progress-wrap"><div class="progress-bar" style="width:100%;background:var(--success)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-600);margin-bottom:6px"><span>Manual Review</span><span style="font-weight:600;color:var(--warning)">In Progress — 226 remaining</span></div>
+            <div class="progress-wrap"><div class="progress-bar" style="width:41%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-400);margin-bottom:6px"><span>Cozone Synchronisation</span><span style="font-weight:600;color:var(--ink-400)">Waiting</span></div>
+            <div class="progress-wrap"><div class="progress-bar" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-400);margin-bottom:6px"><span>Audit Report</span><span style="font-weight:600;color:var(--ink-400)">Waiting</span></div>
+            <div class="progress-wrap"><div class="progress-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Mapping Confidence Distribution (F2.4.2)</div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-600);margin-bottom:4px"><span>High confidence ≥95%</span><span>2,843 accounts</span></div>
+            <div class="progress-wrap" style="height:12px"><div class="progress-bar" style="width:74%;background:var(--success)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-600);margin-bottom:4px"><span>Medium 75–94%</span><span>778 accounts</span></div>
+            <div class="progress-wrap" style="height:12px"><div class="progress-bar" style="width:20%;background:var(--brand-500)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-600);margin-bottom:4px"><span>Low &lt;75% (needs review)</span><span>226 accounts</span></div>
+            <div class="progress-wrap" style="height:12px"><div class="progress-bar" style="width:6%;background:var(--warning)"></div></div>
+          </div>
+        </div>
+        <div style="margin-top:24px;padding:16px;background:var(--brand-100);border-radius:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--ink-600);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Target KPI</div>
+          <div style="font-size:14px;color:var(--ink-800)">Error rate target: <strong>&lt;2%</strong> · Current: <strong style="color:var(--success)">1.8% ✓</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent sessions table -->
+    <div>
+      <div class="section-head">
+        <div class="section-title">Recent Mapping Sessions</div>
+        <button class="btn-ghost" style="height:36px;padding:0 16px;font-size:13px">View all history →</button>
+      </div>
+      <table class="data-table" aria-label="Recent mapping sessions">
+        <thead>
+          <tr>
+            <th>Session</th><th>Firm</th><th>Uploaded</th><th>Accounts</th><th>Auto-Mapped</th><th>Pending</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>A-2024-089</strong></td>
+            <td>Muldoon &amp; Co</td>
+            <td>01 Sep 2026 09:14</td>
+            <td>3,847</td>
+            <td>3,621 (94%)</td>
+            <td style="color:var(--warning);font-weight:600">226</td>
+            <td><span class="chip chip-warning"><span class="chip-dot"></span>In Review</span></td>
+            <td><a href="#" style="font-size:13px;color:var(--brand-600);text-decoration:underline">Open →</a></td>
+          </tr>
+          <tr>
+            <td><strong>A-2024-081</strong></td>
+            <td>Hartley Partners</td>
+            <td>18 Aug 2026 14:02</td>
+            <td>1,204</td>
+            <td>1,198 (99.5%)</td>
+            <td>0</td>
+            <td><span class="chip chip-success"><span class="chip-dot"></span>Synced to Cozone</span></td>
+            <td><a href="#" style="font-size:13px;color:var(--brand-600);text-decoration:underline">View report</a></td>
+          </tr>
+          <tr>
+            <td><strong>A-2024-077</strong></td>
+            <td>Redwood Accounting</td>
+            <td>04 Aug 2026 11:30</td>
+            <td>892</td>
+            <td>867 (97%)</td>
+            <td>0</td>
+            <td><span class="chip chip-success"><span class="chip-dot"></span>Synced to Cozone</span></td>
+            <td><a href="#" style="font-size:13px;color:var(--brand-600);text-decoration:underline">View report</a></td>
+          </tr>
+          <tr>
+            <td><strong>A-2024-071</strong></td>
+            <td>Palmer &amp; Associates</td>
+            <td>22 Jul 2026 08:55</td>
+            <td>2,310</td>
+            <td>2,101 (91%)</td>
+            <td>0</td>
+            <td><span class="chip chip-success"><span class="chip-dot"></span>Synced to Cozone</span></td>
+            <td><a href="#" style="font-size:13px;color:var(--brand-600);text-decoration:underline">View report</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</body>
+</html>

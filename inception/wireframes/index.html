@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azets ALM — Wireframe Index</title>
+<style>
+:root {
+  --brand-500:#26CF7C; --brand-600:#1CAE68; --brand-100:#DDF8EA;
+  --ink-950:#0F0F0F; --ink-800:#2B2B2B; --ink-600:#5D625F; --ink-400:#939A96;
+  --canvas:#FFFFFF; --mist-50:#F7F8F7; --mist-100:#EEF1EF;
+  --border:#D9DEDB; --danger:#B42318; --success:#16794D; --warning:#9A6400;
+  --font:'Manrope',Inter,'Segoe UI',Arial,sans-serif;
+  --radius-card:18px; --radius-pill:999px; --radius-control:10px;
+  --shadow-1:0 10px 35px rgba(15,15,15,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--mist-50);color:var(--ink-950);min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* Header */
+.header{background:var(--ink-950);border-bottom:3px solid var(--brand-500);padding:0 48px;height:72px;display:flex;align-items:center;gap:20px}
+.logo{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.logo span{color:var(--brand-500)}
+.header-sub{font-size:12px;color:var(--ink-400);text-transform:uppercase;letter-spacing:.12em;font-weight:500}
+.header-spacer{flex:1}
+.header-badge{background:rgba(38,207,124,.15);color:var(--brand-500);font-size:12px;font-weight:700;padding:4px 14px;border-radius:var(--radius-pill);border:1px solid rgba(38,207,124,.3)}
+
+/* Hero */
+.hero{background:var(--ink-950);padding:64px 48px 56px;display:flex;gap:64px;align-items:flex-start}
+.hero-left{flex:1}
+.eyebrow{font-size:12px;font-weight:700;color:var(--brand-500);text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px}
+.hero-title{font-size:42px;font-weight:600;color:#fff;line-height:1.08;letter-spacing:-.025em;margin-bottom:16px;max-width:16ch}
+.hero-desc{font-size:16px;color:var(--ink-400);line-height:1.65;max-width:52ch;margin-bottom:32px}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:600px}
+.meta-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 20px}
+.meta-label{font-size:10px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.meta-value{font-size:14px;font-weight:600;color:#fff}
+.hero-right{display:flex;flex-direction:column;gap:12px;min-width:280px;padding-top:8px}
+.legend-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-400)}
+.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+/* Main content */
+.main{max-width:1280px;margin:0 auto;padding:48px 48px}
+.wave-section{margin-bottom:48px}
+.wave-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--border)}
+.wave-title{font-size:22px;font-weight:600;color:var(--ink-950)}
+.wave-sub{font-size:14px;color:var(--ink-600)}
+.wave-badge{padding:3px 12px;border-radius:var(--radius-pill);font-size:12px;font-weight:700}
+.badge-foundation{background:var(--mist-100);color:var(--ink-600)}
+.badge-mvp{background:var(--brand-100);color:var(--success)}
+.badge-incremental{background:#EFF6FF;color:#1E40AF}
+.badge-advanced{background:#F5F3FF;color:#5E35B1}
+
+/* Screen grid */
+.screen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.screen-card{background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow-1);transition:border-color .2s,box-shadow .2s;display:flex;flex-direction:column}
+.screen-card:hover{border-color:var(--brand-500);box-shadow:0 20px 60px rgba(15,15,15,.12)}
+.screen-preview{height:160px;background:var(--mist-100);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-bottom:1px solid var(--border)}
+.screen-number{position:absolute;top:12px;left:12px;background:var(--ink-950);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px}
+.screen-icon{font-size:48px;opacity:.3}
+.screen-body{padding:20px 22px;flex:1;display:flex;flex-direction:column}
+.screen-title{font-size:15px;font-weight:600;color:var(--ink-950);margin-bottom:4px}
+.screen-epic{font-size:12px;color:var(--brand-600);font-weight:600;margin-bottom:8px}
+.screen-desc{font-size:13px;color:var(--ink-600);line-height:1.5;flex:1;margin-bottom:16px}
+.feature-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px}
+.feature-tag{background:var(--mist-100);color:var(--ink-600);font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px}
+.screen-link{display:inline-flex;align-items:center;gap:6px;height:38px;background:var(--brand-500);border-radius:var(--radius-pill);padding:0 18px;font-size:13px;font-weight:650;color:var(--ink-950)}
+.screen-link:hover{background:var(--brand-600)}
+
+/* Flow diagram */
+.flow-section{background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius-card);padding:32px 36px;margin-bottom:48px;box-shadow:var(--shadow-1)}
+.flow-title{font-size:17px;font-weight:600;color:var(--ink-950);margin-bottom:24px}
+.flow-diagram{display:flex;align-items:center;gap:0;flex-wrap:wrap;row-gap:16px}
+.flow-step{background:var(--mist-50);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;text-align:center;min-width:120px}
+.flow-step strong{display:block;font-size:11px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.flow-step span{font-size:13px;color:var(--ink-800);font-weight:500}
+.flow-step.active{background:var(--brand-100);border-color:var(--brand-500)}
+.flow-step.active span{color:var(--success);font-weight:600}
+.flow-arrow{color:var(--ink-400);font-size:18px;padding:0 6px;flex-shrink:0}
+
+/* Footer */
+.footer{background:var(--ink-950);color:var(--ink-400);font-size:12px;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;margin-top:0}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo">Azets <span>ALM</span></div>
+  <div class="header-sub">Automated Ledger Mapping Tool</div>
+  <div class="header-spacer"></div>
+  <div class="header-badge">Wireframe Index · 16 Screens</div>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="eyebrow">Greenfield · Sprint 1 Wireframes</div>
+    <h1 class="hero-title">ALM Tool — Screen Index</h1>
+    <p class="hero-desc">Complete wireframe set for the Automated Ledger Mapping Tool. All screens implement epics across 4 delivery waves using the Cozone-inspired design system. Click any screen card to open the wireframe.</p>
+    <div class="meta-grid">
+      <div class="meta-card"><div class="meta-label">Total Screens</div><div class="meta-value">16 wireframes</div></div>
+      <div class="meta-card"><div class="meta-label">Epics Covered</div><div class="meta-value">F0.2 – F2.4</div></div>
+      <div class="meta-card"><div class="meta-label">Design System</div><div class="meta-value">Cozone v1.0</div></div>
+      <div class="meta-card"><div class="meta-label">Delivery Waves</div><div class="meta-value">W0 – W2</div></div>
+      <div class="meta-card"><div class="meta-label">Features Covered</div><div class="meta-value">68 features</div></div>
+      <div class="meta-card"><div class="meta-label">User Personas</div><div class="meta-value">Finance Mgr · Accountant</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div style="font-size:11px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Delivery Wave Legend</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#939A96"></div>W0 Foundation</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--brand-500)"></div>W1 MVP</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1E40AF"></div>W2 Incremental</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5E35B1"></div>W3 Advanced</div>
+    <div style="margin-top:20px;font-size:11px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">End-to-End Flow</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:12px;color:var(--ink-400)">Login → Dashboard → Upload → Validate → AI Map → Manual Review → Exception Queue → Cozone Sync → Audit Report</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Core User Flow -->
+  <div class="flow-section">
+    <div class="flow-title">End-to-End User Journey — Muldoon Acquisition (Primary Flow)</div>
+    <div class="flow-diagram">
+      <div class="flow-step active"><strong>S-01</strong><span>Login</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active"><strong>S-02</strong><span>Dashboard</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active"><strong>S-03</strong><span>Upload</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active"><strong>S-04</strong><span>Validate</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active"><strong>S-05</strong><span>AI Mapping</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active"><strong>S-06/07</strong><span>Manual Review</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active"><strong>S-08</strong><span>Cozone Sync</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active"><strong>S-09</strong><span>Audit Report</span></div>
+    </div>
+  </div>
+
+  <!-- W0 Foundation -->
+  <div class="wave-section">
+    <div class="wave-header">
+      <div class="wave-title">Wave 0 — Foundation</div>
+      <div class="wave-badge badge-foundation">W0 · Pre-MVP Infrastructure</div>
+      <div class="wave-sub">Platform, identity, master ledger and rules engine foundations. No user-facing features ship until these are in place.</div>
+    </div>
+    <div class="screen-grid">
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#1a1a2e,#0F0F0F)">
+          <div class="screen-number">01</div>
+          <div class="screen-icon">🔐</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Login / Authentication</div>
+          <div class="screen-epic">F0.2 Identity &amp; Access Platform</div>
+          <div class="screen-desc">Enterprise OIDC SSO (Microsoft) with email/password fallback. MFA enforcement banner. JWT session management.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F0.2.1 User Auth</span>
+            <span class="feature-tag">F0.2.3 Session/JWT</span>
+            <span class="feature-tag">F0.2.5 Audit Log</span>
+          </div>
+          <a href="screen-01-login.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F7F8F7,#EEF1EF)">
+          <div class="screen-number">12</div>
+          <div class="screen-icon">📒</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Master Ledger Management</div>
+          <div class="screen-epic">F0.3 Master Ledger Reference</div>
+          <div class="screen-desc">Browse, import and maintain the Azets master ledger. Version history, classification taxonomy and full audit tracking.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F0.3.1 Import</span>
+            <span class="feature-tag">F0.3.2 Maintenance UI</span>
+            <span class="feature-tag">F0.3.3 Versioning</span>
+            <span class="feature-tag">F0.3.4 Classification</span>
+          </div>
+          <a href="screen-12-master-ledger.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F7F8F7,#EEF1EF)">
+          <div class="screen-number">13</div>
+          <div class="screen-icon">⚙️</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Mapping Rules Engine</div>
+          <div class="screen-epic">F0.4 Rules Engine Foundation</div>
+          <div class="screen-desc">Create, manage and test deterministic mapping rules. Simulation sandbox lets admins test rules against sample data before publishing.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F0.4.1 Rule Mgmt</span>
+            <span class="feature-tag">F0.4.3 Evaluation</span>
+            <span class="feature-tag">F0.4.4 Versioning</span>
+            <span class="feature-tag">F0.4.5 Simulation</span>
+          </div>
+          <a href="screen-13-rules-engine.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#1a1a2e,#0F0F0F)">
+          <div class="screen-number">16</div>
+          <div class="screen-icon">👥</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">User / RBAC Administration</div>
+          <div class="screen-epic">F0.2 Identity &amp; Access Platform</div>
+          <div class="screen-desc">User management, role assignment and permissions matrix. Active session monitoring, access audit log, invite and suspend controls.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F0.2.2 RBAC</span>
+            <span class="feature-tag">F0.2.4 Permissions</span>
+            <span class="feature-tag">F0.2.3 Sessions</span>
+            <span class="feature-tag">F0.2.5 Audit</span>
+          </div>
+          <a href="screen-16-users.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- W1 MVP -->
+  <div class="wave-section">
+    <div class="wave-header">
+      <div class="wave-title">Wave 1 — MVP</div>
+      <div class="wave-badge badge-mvp">W1 · Core Mapping Pipeline</div>
+      <div class="wave-sub">The full upload → AI map → manual review → Cozone sync → audit report flow. Sufficient for production use with a single firm.</div>
+    </div>
+    <div class="screen-grid">
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F0FDF4,#DDF8EA)">
+          <div class="screen-number">02</div>
+          <div class="screen-icon">⊞</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Dashboard / Home</div>
+          <div class="screen-epic">F2.4 Operational Analytics</div>
+          <div class="screen-desc">Live KPI overview: accounts processed, auto-map rate, error rate, pending reviews. Session progress tracker, recent sessions table, alert banner.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F2.4.1 Metrics</span>
+            <span class="feature-tag">F2.4.5 KPI Dashboard</span>
+          </div>
+          <a href="screen-02-dashboard.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F0FDF4,#DDF8EA)">
+          <div class="screen-number">03</div>
+          <div class="screen-icon">↑</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Upload Legacy Accounts</div>
+          <div class="screen-epic">F1.1 Legacy Account Intake</div>
+          <div class="screen-desc">Drag-and-drop file upload for CSV, XLSX and XML. Firm details form, format requirements reference, validation rules callout.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F1.1.1 CSV</span>
+            <span class="feature-tag">F1.1.2 XLSX</span>
+            <span class="feature-tag">F1.1.3 XML</span>
+            <span class="feature-tag">F1.1.4 Validation</span>
+            <span class="feature-tag">F1.1.5 Error Reporting</span>
+          </div>
+          <a href="screen-03-upload.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F0FDF4,#DDF8EA)">
+          <div class="screen-number">04</div>
+          <div class="screen-icon">✓</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Upload Processing / Validation</div>
+          <div class="screen-epic">F1.2 Account Structure Processing</div>
+          <div class="screen-desc">5-step processing pipeline tracker, quality score (94.1%), warnings and errors tabbed table. Blocks progression if hard errors present.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F1.2.1 Parsing</span>
+            <span class="feature-tag">F1.2.2 Normalisation</span>
+            <span class="feature-tag">F1.2.3 Duplicates</span>
+            <span class="feature-tag">F1.2.4 Missing Codes</span>
+            <span class="feature-tag">F1.2.5 Quality Score</span>
+          </div>
+          <a href="screen-04-validation.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F0FDF4,#DDF8EA)">
+          <div class="screen-number">05</div>
+          <div class="screen-icon">⚡</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">AI Mapping Suggestions</div>
+          <div class="screen-epic">F1.3 Automated Mapping Engine · F1.4</div>
+          <div class="screen-desc">Confidence-scored mapping table with Rule-Based, AI Semantic and Similarity match types. Bulk accept, per-row Accept/Override/Flag. Ambiguity flagging.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F1.3.1 Rule-Based</span>
+            <span class="feature-tag">F1.3.2 AI Suggestions</span>
+            <span class="feature-tag">F1.3.4 Confidence</span>
+            <span class="feature-tag">F1.4.1 Ambiguity</span>
+          </div>
+          <a href="screen-05-mapping-review.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F0FDF4,#DDF8EA)">
+          <div class="screen-number">06</div>
+          <div class="screen-icon">✎</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Manual Mapping Workbench</div>
+          <div class="screen-epic">F1.5 Manual Mapping Workbench</div>
+          <div class="screen-desc">Split-pane workbench: review queue left, account detail and master ledger search right. Override reason capture, approval workflow, audit trail.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F1.5.1 Review Screen</span>
+            <span class="feature-tag">F1.5.3 Ledger Search</span>
+            <span class="feature-tag">F1.5.4 Override Approval</span>
+            <span class="feature-tag">F1.5.5 Audit Capture</span>
+          </div>
+          <a href="screen-06-workbench.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#FFF7ED,#FEE2E2)">
+          <div class="screen-number">07</div>
+          <div class="screen-icon">⚠</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Ambiguity / Exception Queue</div>
+          <div class="screen-epic">F1.4 Ambiguity &amp; Exception Mgmt</div>
+          <div class="screen-desc">Priority-sorted exception queue with type filters. Reviewer assignment, bulk actions, detail flyout with AI reasoning and action history.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F1.4.2 Review Queue</span>
+            <span class="feature-tag">F1.4.3 Exception Dashboard</span>
+            <span class="feature-tag">F1.4.4 Workflow</span>
+            <span class="feature-tag">F1.4.5 Assignment</span>
+          </div>
+          <a href="screen-07-exceptions.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F0FDF4,#DDF8EA)">
+          <div class="screen-number">08</div>
+          <div class="screen-icon">⟳</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Cozone Sync / Integration Status</div>
+          <div class="screen-epic">F1.6 Cozone Integration</div>
+          <div class="screen-desc">Pre-sync checklist, sync initiation, connection health monitor, sync history table, retry framework callout, failure log.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F1.6.1 API Adapter</span>
+            <span class="feature-tag">F1.6.2 Export</span>
+            <span class="feature-tag">F1.6.3 Monitoring</span>
+            <span class="feature-tag">F1.6.4 Retry</span>
+          </div>
+          <a href="screen-08-cozone-sync.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#F0FDF4,#DDF8EA)">
+          <div class="screen-number">09</div>
+          <div class="screen-icon">📋</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Audit Report Generation</div>
+          <div class="screen-epic">F1.7 Audit Reporting</div>
+          <div class="screen-desc">Session summary, PDF and CSV download cards, full chronological audit event timeline, override details table with all 226 manual decisions.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F1.7.1 Decision Capture</span>
+            <span class="feature-tag">F1.7.2 Override Audit</span>
+            <span class="feature-tag">F1.7.3 Timeline</span>
+            <span class="feature-tag">F1.7.4 PDF</span>
+            <span class="feature-tag">F1.7.5 CSV</span>
+          </div>
+          <a href="screen-09-audit-report.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- W2 Incremental -->
+  <div class="wave-section">
+    <div class="wave-header">
+      <div class="wave-title">Wave 2 — Incremental</div>
+      <div class="wave-badge badge-incremental">W2 · Scale &amp; Operations</div>
+      <div class="wave-sub">History, bulk multi-firm operations, help centre and deep operational analytics. Extends the MVP without changing the core pipeline.</div>
+    </div>
+    <div class="screen-grid">
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE)">
+          <div class="screen-number">10</div>
+          <div class="screen-icon">📂</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Mapping History Portal</div>
+          <div class="screen-epic">F2.1 Mapping History &amp; Audit Portal</div>
+          <div class="screen-desc">Full searchable history of all sessions with date range, firm and status filters. Investigation view per session with change timeline and report retrieval.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F2.1.1 Session History</span>
+            <span class="feature-tag">F2.1.2 Historical Search</span>
+            <span class="feature-tag">F2.1.3 Report Retrieval</span>
+            <span class="feature-tag">F2.1.4 Investigation</span>
+          </div>
+          <a href="screen-10-history.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE)">
+          <div class="screen-number">11</div>
+          <div class="screen-icon">⊞</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Bulk Upload / Multi-Firm Ops</div>
+          <div class="screen-epic">F2.2 Bulk Mapping Operations</div>
+          <div class="screen-desc">Add multiple firms in a single batch session. Batch settings (parallel workers, threshold), real-time progress per firm, retry on failure.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F2.2.1 Multi-Firm Upload</span>
+            <span class="feature-tag">F2.2.2 Batch Processing</span>
+            <span class="feature-tag">F2.2.3 Monitoring</span>
+            <span class="feature-tag">F2.2.4 Retry</span>
+            <span class="feature-tag">F2.2.5 Parallel</span>
+          </div>
+          <a href="screen-11-bulk.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE)">
+          <div class="screen-number">14</div>
+          <div class="screen-icon">📊</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Operational Analytics Dashboard</div>
+          <div class="screen-epic">F2.4 Operational Analytics</div>
+          <div class="screen-desc">Deep analytics: 6-KPI strip, processing volume chart, error type donut and trend line, SLA compliance table, adoption metrics (80% target achieved).</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F2.4.1 Processing Metrics</span>
+            <span class="feature-tag">F2.4.2 Error Analytics</span>
+            <span class="feature-tag">F2.4.3 Adoption</span>
+            <span class="feature-tag">F2.4.4 SLA Monitoring</span>
+          </div>
+          <a href="screen-14-analytics.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-preview" style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE)">
+          <div class="screen-number">15</div>
+          <div class="screen-icon">?</div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-title">Help &amp; Support Centre</div>
+          <div class="screen-epic">F2.3 Contextual Help &amp; Support</div>
+          <div class="screen-desc">Global search, AI mapping assistant chat, troubleshooting accordion, support ticket form, and knowledge base article grid.</div>
+          <div class="feature-tags">
+            <span class="feature-tag">F2.3.1 Guided Uploads</span>
+            <span class="feature-tag">F2.3.2 Help Assistant</span>
+            <span class="feature-tag">F2.3.3 Troubleshooting</span>
+            <span class="feature-tag">F2.3.4 Support Tickets</span>
+            <span class="feature-tag">F2.3.5 Knowledge Base</span>
+          </div>
+          <a href="screen-15-help.html" class="screen-link">Open wireframe →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Design system reference -->
+  <div class="flow-section" style="margin-bottom:0">
+    <div class="flow-title">Design System Reference — Cozone v1.0 Tokens</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px">
+      <div style="background:#26CF7C;height:48px;border-radius:10px;display:flex;align-items:flex-end;padding:6px 10px"><span style="font-size:11px;font-weight:700;color:#0F0F0F">brand-500 #26CF7C</span></div>
+      <div style="background:#0F0F0F;height:48px;border-radius:10px;display:flex;align-items:flex-end;padding:6px 10px"><span style="font-size:11px;font-weight:700;color:#fff">ink-950 #0F0F0F</span></div>
+      <div style="background:#5D625F;height:48px;border-radius:10px;display:flex;align-items:flex-end;padding:6px 10px"><span style="font-size:11px;font-weight:700;color:#fff">ink-600 #5D625F</span></div>
+      <div style="background:#EEF1EF;height:48px;border-radius:10px;display:flex;align-items:flex-end;padding:6px 10px;border:1px solid #D9DEDB"><span style="font-size:11px;font-weight:700;color:#0F0F0F">mist-100 #EEF1EF</span></div>
+      <div style="background:#B42318;height:48px;border-radius:10px;display:flex;align-items:flex-end;padding:6px 10px"><span style="font-size:11px;font-weight:700;color:#fff">danger #B42318</span></div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:var(--ink-600)">
+      <span><strong style="color:var(--ink-950)">Border radius:</strong> Card 18px · Button pill 999px · Input 10px</span>
+      <span><strong style="color:var(--ink-950)">Font:</strong> Manrope → Inter → Segoe UI</span>
+      <span><strong style="color:var(--ink-950)">Shadow:</strong> 0 10px 35px rgba(15,15,15,.08)</span>
+      <span><strong style="color:var(--ink-950)">Grid:</strong> 12-col, 1280px max, clamp margins</span>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <span>Azets ALM Tool — Wireframe Set · Greenfield Sprint 1</span>
+  <span>16 screens · Epics F0.2 – F2.4 · Cozone Design System v1.0</span>
+  <span>Generated 01 Sep 2026</span>
+</footer>
+
+</body>
+</html>
