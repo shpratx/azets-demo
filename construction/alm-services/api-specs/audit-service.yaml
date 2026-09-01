@@ -1,0 +1,245 @@
+openapi: 3.1.0
+info:
+  title: ALM Audit Service
+  version: 1.0.0
+  description: >
+    Append-only event capture, session timeline and report generation (HLD 5.6, epic F1.7).
+    This API exposes no update or delete operation, by design - corrections are new compensating
+    events, never edits (AP-4.6). Events are SHA-256 hash-chained per tenant for tamper evidence.
+servers:
+  - url: https://api.alm.azets.internal/audit/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Events
+  - name: Timeline
+  - name: Reports
+  - name: Integrity
+
+paths:
+  /events:
+    get:
+      tags: [Events]
+      summary: Query audit events
+      description: All four roles may read; Auditor reaches every read path and no write path.
+      operationId: listAuditEvents
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/PageParam'
+        - $ref: '_shared-components.yaml#/components/parameters/SizeParam'
+        - { name: subjectId, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/AuditCategory' } }
+        - { name: actor, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: Page of audit events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AuditEvent' }
+
+  /sessions/{sessionId}/timeline:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Timeline]
+      summary: Reconstruct a session end to end
+      description: F1.7.3. Upload, validation, mapping, overrides, approval and sync in one ordered view.
+      operationId: getSessionTimeline
+      responses:
+        '200':
+          description: Ordered timeline
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId: { type: string }
+                  events:
+                    type: array
+                    items: { $ref: '#/components/schemas/AuditEvent' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /sessions/{sessionId}/report:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Reports]
+      summary: Get the audit report summary for a session
+      description: >
+        Answers one question - can we defend every decision in this session. Overrides are
+        called out separately from auto-accepted mappings, because that is where human
+        judgement was applied (UF-08).
+      operationId: getAuditReport
+      responses:
+        '200':
+          description: Report summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditReport' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /sessions/{sessionId}/report:generate:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Reports]
+      summary: Generate a downloadable audit report
+      description: >
+        Asynchronous. Content is deterministic for a given (sessionId, mappingVersion) -
+        regenerating a report must produce a byte-identical document (LLD 7.2).
+      operationId: generateReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [format]
+              properties:
+                format: { type: string, enum: [PDF, CSV] }
+      responses:
+        '202':
+          description: Generation accepted; poll the report resource.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/AcceptedResponse' }
+
+  /reports/{reportId}:
+    parameters:
+      - { name: reportId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Reports]
+      summary: Get report generation status
+      operationId: getReportStatus
+      responses:
+        '200':
+          description: Report metadata
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReportDescriptor' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /reports/{reportId}/content:
+    parameters:
+      - { name: reportId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Reports]
+      summary: Download a generated report
+      operationId: downloadReport
+      responses:
+        '200':
+          description: The report
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+            text/csv:
+              schema: { type: string }
+        '409':
+          description: The report is still being generated.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+
+  /integrity/verify:
+    post:
+      tags: [Integrity]
+      summary: Verify the hash chain
+      description: >
+        Walks the per-tenant chain. A break is a tamper alarm and pages immediately (LLD 11).
+        Administrator or Auditor only.
+      operationId: verifyChain
+      responses:
+        '200':
+          description: Verification outcome
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  intact: { type: boolean }
+                  eventsChecked: { type: integer, format: int64 }
+                  firstBreakAt: { type: string, format: uuid, nullable: true }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    AuditEvent:
+      type: object
+      description: LLD 1.8. No UPDATE or DELETE grant exists on this table.
+      properties:
+        id: { type: string, format: uuid }
+        occurredAt: { type: string, format: date-time }
+        actor: { type: string, description: A user principal, or system:<service> }
+        category: { $ref: '_shared-components.yaml#/components/schemas/AuditCategory' }
+        action: { type: string }
+        subjectId: { type: string, description: Session, exception or account id }
+        detail:
+          type: object
+          additionalProperties: true
+        correlationId: { type: string }
+        hash: { type: string, description: SHA-256 over the canonical JSON of the event }
+        prevHash: { type: string }
+
+    AuditReport:
+      type: object
+      properties:
+        sessionId: { type: string }
+        firmName: { type: string }
+        totalAccounts: { type: integer }
+        autoMapped: { type: integer }
+        autoMappedPct: { type: number }
+        overrideCount: { type: integer }
+        syncOutcome:
+          allOf: [ { $ref: '_shared-components.yaml#/components/schemas/SyncStatus' } ]
+          nullable: true
+        ledgerVersion: { type: string }
+        decisions:
+          type: array
+          items:
+            type: object
+            properties:
+              legacyCode: { type: string, nullable: true }
+              legacyName: { type: string, nullable: true }
+              finalMasterCode: { type: string, nullable: true }
+              matchType:
+                allOf: [ { $ref: '_shared-components.yaml#/components/schemas/MatchType' } ]
+                nullable: true
+              confidence: { type: number }
+              decidedBy: { type: string }
+              explanation: { type: string }
+        overrides:
+          type: array
+          items:
+            type: object
+            properties:
+              legacyCode: { type: string, nullable: true }
+              fromMasterCode: { type: string, nullable: true }
+              toMasterCode: { type: string }
+              proposedBy: { type: string }
+              approvedBy: { type: string }
+              justification: { type: string }
+              approvedAt: { type: string, format: date-time }
+
+    ReportDescriptor:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string }
+        format: { type: string, enum: [PDF, CSV] }
+        status: { type: string, enum: [Preparing, Ready, Failed] }
+        requestedBy: { type: string }
+        requestedAt: { type: string, format: date-time }
+        sizeBytes: { type: integer, format: int64, nullable: true }
+        contentHash:
+          type: string
+          nullable: true
+          description: Deterministic for a given (sessionId, mappingVersion).

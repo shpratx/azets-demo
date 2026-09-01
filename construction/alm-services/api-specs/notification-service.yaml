@@ -1,0 +1,85 @@
+openapi: 3.1.0
+info:
+  title: ALM Notification Service
+  version: 1.0.0
+  description: >
+    In-app and email fan-out from bus events (HLD 5.7, epic F1.8). A bus subscriber only - it is
+    never invoked synchronously by another service, and a delivery failure must not affect the
+    emitting workflow. The HTTP surface here is read and acknowledge only.
+servers:
+  - url: https://api.alm.azets.internal/notifications/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Notifications
+
+paths:
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List the caller's notifications
+      operationId: listNotifications
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/PageParam'
+        - $ref: '_shared-components.yaml#/components/parameters/SizeParam'
+        - { name: unreadOnly, in: query, schema: { type: boolean, default: false } }
+      responses:
+        '200':
+          description: Page of notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unreadCount: { type: integer }
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Notification' }
+
+  /notifications/{id}:read:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Notifications]
+      summary: Mark a notification read
+      operationId: markRead
+      responses:
+        '204': { description: Marked read }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /notifications:read-all:
+    post:
+      tags: [Notifications]
+      summary: Mark all of the caller's notifications read
+      operationId: markAllRead
+      responses:
+        '200':
+          description: Count marked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  marked: { type: integer }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    Notification:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        recipient: { type: string }
+        severity: { type: string, enum: [Info, Warning, Error] }
+        title: { type: string }
+        body: { type: string }
+        sessionId: { type: string, nullable: true }
+        deepLink:
+          type: string
+          nullable: true
+          description: Every alert links to the screen where it can be resolved (UF-14).
+        createdAt: { type: string, format: date-time }
+        readAt: { type: string, format: date-time, nullable: true }
+        emailDispatched: { type: boolean }

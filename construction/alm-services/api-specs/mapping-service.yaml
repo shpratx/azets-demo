@@ -1,0 +1,234 @@
+openapi: 3.1.0
+info:
+  title: ALM Mapping Service
+  version: 1.0.0
+  description: >
+    Orchestrates the three resolution strategies, arbitrates confidence, and persists decisions
+    (HLD 5.3, epic F1.3). A satisfied rule short-circuits AI and similarity, which bounds
+    inference cost. This service never calls Cozone and never writes audit records directly.
+servers:
+  - url: https://api.alm.azets.internal/mapping/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Suggestions
+  - name: Decisions
+  - name: Engine
+
+paths:
+  /sessions/{sessionId}/suggestions:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Suggestions]
+      summary: List mapping suggestions for a session
+      description: >
+        US2. Confidence and provenance travel together - every suggestion carries a non-empty
+        explanation, and a suggestion without one is rejected by the service (F0.5.5, TS-MAP-05).
+      operationId: listSuggestions
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/PageParam'
+        - $ref: '_shared-components.yaml#/components/parameters/SizeParam'
+        - { name: matchType, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/MatchType' } }
+        - { name: status, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/SuggestionState' } }
+        - name: minConfidence
+          in: query
+          schema: { type: number, minimum: 0, maximum: 100 }
+          description: Confidence-band filter used by the Mapping Review screen.
+        - { name: maxConfidence, in: query, schema: { type: number, minimum: 0, maximum: 100 } }
+      responses:
+        '200':
+          description: Page of suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary: { $ref: '#/components/schemas/MappingSummary' }
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/MappingSuggestion' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /sessions/{sessionId}/mapping:run:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Engine]
+      summary: Run the mapping engine for a session
+      description: >
+        Normally triggered by the legacy.validated event; exposed for operator-initiated retry
+        after a failure. Idempotent - a duplicate run does not double-map or duplicate
+        decisions (TS-MAP-20). If AI inference is unavailable the run still completes on rules
+        and similarity, and affected rows are flagged for review (AP-6.5, TS-MAP-13).
+      operationId: runMapping
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: Mapping accepted; poll the session for progress.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/AcceptedResponse' }
+        '409':
+          description: The session is not in a state from which mapping may start.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+
+  /decisions/{decisionId}:accept:
+    parameters:
+      - { name: decisionId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Decisions]
+      summary: Accept a suggested mapping
+      operationId: acceptDecision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version]
+              properties:
+                version:
+                  type: integer
+                  description: Optimistic concurrency token; a stale value returns 409 (LLD 10).
+      responses:
+        '200':
+          description: Decision accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MappingSuggestion' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+        '409': { $ref: '_shared-components.yaml#/components/responses/Conflict' }
+
+  /sessions/{sessionId}/decisions:accept-above-threshold:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Decisions]
+      summary: Bulk-accept every pending suggestion at or above a confidence threshold
+      description: Bulk accept always states how many records it will affect before committing (UF-04).
+      operationId: acceptAboveThreshold
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [threshold]
+              properties:
+                threshold: { type: number, minimum: 0, maximum: 100 }
+                expectedCount:
+                  type: integer
+                  description: >
+                    The count the user was shown. If it no longer matches, the request is
+                    rejected with 409 rather than silently affecting a different set.
+      responses:
+        '200':
+          description: Bulk accept applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted: { type: integer }
+                  skipped: { type: integer }
+        '409': { $ref: '_shared-components.yaml#/components/responses/Conflict' }
+
+  /decisions/{decisionId}:flag:
+    parameters:
+      - { name: decisionId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Decisions]
+      summary: Flag a suggestion for manual review
+      operationId: flagDecision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 1 }
+      responses:
+        '202':
+          description: Exception raised on the review queue
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/AcceptedResponse' }
+
+  /sessions/{sessionId}/summary:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Suggestions]
+      summary: Mapping header counts for a session
+      operationId: getMappingSummary
+      responses:
+        '200':
+          description: Summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MappingSummary' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    MappingSuggestion:
+      type: object
+      description: LLD 1.4. One live decision per legacy account; superseded decisions move to history.
+      required: [id, sessionId, legacyAccountId, confidence, explanation, status]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string }
+        legacyAccountId: { type: string, format: uuid }
+        legacyCode: { type: string, nullable: true }
+        legacyName: { type: string, nullable: true }
+        suggestedMasterCode: { type: string, nullable: true, description: Null when No Match }
+        suggestedMasterName:
+          type: string
+          nullable: true
+          description: >
+            Denormalised snapshot at decision time, so that regenerating an audit report
+            produces a byte-identical document (LLD 7.2).
+        matchType:
+          allOf: [ { $ref: '_shared-components.yaml#/components/schemas/MatchType' } ]
+          nullable: true
+        confidence: { $ref: '_shared-components.yaml#/components/schemas/Confidence' }
+        explanation:
+          type: string
+          minLength: 1
+          description: Mandatory. A suggestion without an explanation is rejected by the service (F0.5.5).
+        status: { $ref: '_shared-components.yaml#/components/schemas/SuggestionState' }
+        finalMasterCode: { type: string, nullable: true }
+        ruleId: { type: string, nullable: true, description: Populated when Rule-Based }
+        modelVersion: { type: string, nullable: true, description: Populated when AI Semantic }
+        runnerUpMasterCode:
+          type: string
+          nullable: true
+          description: Present when two candidates fell within the tie band.
+        decidedAt: { type: string, format: date-time, nullable: true }
+        version: { type: integer }
+
+    MappingSummary:
+      type: object
+      properties:
+        sessionId: { type: string }
+        totalAccounts: { type: integer }
+        autoMapped: { type: integer }
+        autoMappedPct: { type: number, format: double }
+        pendingReview: { type: integer }
+        errors: { type: integer }
+        byMatchType:
+          type: object
+          additionalProperties: { type: integer }
+        aiDegraded:
+          type: boolean
+          description: >
+            True when AI inference was unavailable for this run. The UI must state that the
+            auto-map rate is not comparable to a normal run (UF-04 degraded variant).

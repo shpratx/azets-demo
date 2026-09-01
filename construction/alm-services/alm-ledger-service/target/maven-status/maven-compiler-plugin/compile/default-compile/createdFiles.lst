@@ -1,0 +1,14 @@
+com/azets/alm/ledger/api/dto/LedgerDtos$MasterLedgerAccountInput.class
+com/azets/alm/ledger/service/LedgerService.class
+com/azets/alm/ledger/api/dto/LedgerDtos.class
+com/azets/alm/ledger/domain/MasterLedgerAccountId.class
+com/azets/alm/ledger/repository/LedgerVersionRepository.class
+com/azets/alm/ledger/api/LedgerController.class
+com/azets/alm/ledger/LedgerApplication.class
+com/azets/alm/ledger/api/dto/LedgerDtos$DeactivationResponse.class
+com/azets/alm/ledger/api/dto/LedgerDtos$MasterLedgerAccountResponse.class
+com/azets/alm/ledger/api/dto/LedgerDtos$LedgerIndexResponse.class
+com/azets/alm/ledger/domain/LedgerVersion.class
+com/azets/alm/ledger/repository/MasterLedgerAccountRepository.class
+com/azets/alm/ledger/api/dto/LedgerDtos$LedgerVersionResponse.class
+com/azets/alm/ledger/domain/MasterLedgerAccount.class

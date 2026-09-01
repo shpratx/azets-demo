@@ -1,0 +1,12 @@
+com/azets/alm/ai/api/dto/AiDtos$MasterCandidate.class
+com/azets/alm/ai/service/ModelRegistry.class
+com/azets/alm/ai/api/dto/AiDtos$SuggestRequest.class
+com/azets/alm/ai/AiApplication.class
+com/azets/alm/ai/api/AiController.class
+com/azets/alm/ai/api/dto/AiDtos$SuggestResponse.class
+com/azets/alm/ai/api/dto/AiDtos$AiSuggestionSet.class
+com/azets/alm/ai/api/dto/AiDtos.class
+com/azets/alm/ai/api/dto/AiDtos$ModelDescriptor.class
+com/azets/alm/ai/api/dto/AiDtos$Candidate.class
+com/azets/alm/ai/api/dto/AiDtos$InferenceAccount.class
+com/azets/alm/ai/service/SemanticScorer.class

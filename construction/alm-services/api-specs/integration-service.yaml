@@ -1,0 +1,154 @@
+openapi: 3.1.0
+info:
+  title: ALM Integration Service
+  version: 1.0.0
+  description: >
+    Cozone export, sync monitoring, retry and failure handling (HLD 5.5, epic F1.6). Cozone
+    protocol specifics live wholly inside the adapter; no core service imports a Cozone type
+    (ADR-005, AP-2.5). This service never mutates mapping decisions.
+servers:
+  - url: https://api.alm.azets.internal/integration/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Sync
+
+paths:
+  /sessions/{sessionId}/sync:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Sync]
+      summary: Start a Cozone synchronisation for an approved session
+      description: >
+        FinanceManager or Administrator only. The export carries an idempotency key derived from
+        (sessionId, mappingVersion); replaying an export must not double-post (AP-4.1). A poisoned
+        record is quarantined rather than blocking the batch (AP-6.5).
+      operationId: startSync
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: Sync accepted; poll for progress.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/AcceptedResponse' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+        '409':
+          description: The session is not Approved, or a successful sync already exists for this mapping version.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+        '503': { $ref: '_shared-components.yaml#/components/responses/Unavailable' }
+    get:
+      tags: [Sync]
+      summary: Get the sync record for a session
+      description: >
+        Partial is never dressed up as success - the failure count is returned alongside the
+        exported count, with equal prominence in the UI (UF-07).
+      operationId: getSyncRecord
+      responses:
+        '200':
+          description: The sync record
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SyncRecord' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /sessions/{sessionId}/sync:retry:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Sync]
+      summary: Retry the failed subset of a sync
+      description: >
+        Scoped to the failed records only, so a retry never re-posts a record that already
+        succeeded (UF-07). FinanceManager or Administrator only.
+      operationId: retrySync
+      responses:
+        '202':
+          description: Retry accepted
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/AcceptedResponse' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+        '409':
+          description: Nothing to retry, or the retry budget is exhausted.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+
+  /sessions/{sessionId}/sync/failures:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Sync]
+      summary: List the quarantined records of a sync
+      description: >
+        Non-transient responses - 400, 401, 403, 409, 422 - are never retried; they are
+        quarantined for human action (LLD 6.2).
+      operationId: listSyncFailures
+      responses:
+        '200':
+          description: Quarantined records
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SyncFailure' }
+
+  /sync-records:
+    get:
+      tags: [Sync]
+      summary: List sync records
+      operationId: listSyncRecords
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/PageParam'
+        - $ref: '_shared-components.yaml#/components/parameters/SizeParam'
+        - { name: status, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/SyncStatus' } }
+        - { name: firmName, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Page of sync records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/SyncRecord' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    SyncRecord:
+      type: object
+      description: LLD 1.9.
+      properties:
+        id: { type: string }
+        sessionId: { type: string }
+        firmName: { type: string }
+        syncedAt: { type: string, format: date-time, nullable: true }
+        accountsExported: { type: integer }
+        failures: { type: integer }
+        duration: { type: string, nullable: true }
+        status: { $ref: '_shared-components.yaml#/components/schemas/SyncStatus' }
+        idempotencyKey:
+          type: string
+          description: sha256(sessionId + ':' + mappingVersion). Unique - this is what makes replay safe.
+        attempt: { type: integer }
+
+    SyncFailure:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string }
+        masterCode: { type: string, nullable: true }
+        legacyCode: { type: string, nullable: true }
+        httpStatus: { type: integer, nullable: true }
+        reason: { type: string }
+        retryable: { type: boolean }
+        quarantinedAt: { type: string, format: date-time }

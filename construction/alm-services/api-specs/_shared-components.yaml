@@ -1,0 +1,197 @@
+# Shared OpenAPI components for the ALM platform.
+# Referenced by every service spec so that the error envelope, the closed enumerations of
+# LLD 1.2, and the correlation header are defined exactly once (AP-2.1, AP-2.3).
+openapi: 3.1.0
+info:
+  title: ALM Shared Components
+  version: 1.0.0
+  description: >
+    Not a deployable API. Component library referenced by the per-service specs.
+    Enumerations here are closed: adding a member is a breaking change requiring a new
+    API major version (AP-2.3, LLD 1.2).
+paths: {}
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Short-lived RS256 JWT issued by the enterprise IdP and validated at the gateway against
+        the IdP JWKS endpoint (AP-9.1, AP-9.3). ALM issues no credentials of its own.
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: >
+        Accepted at the gateway or minted there, then propagated on every service call and bus
+        message and stamped on every log line and audit event (AP-7.2).
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Client-supplied key for safe replay of an unsafe operation (AP-4.1).
+      schema:
+        type: string
+        maxLength: 120
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    SizeParam:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+
+  schemas:
+    SessionStatus:
+      type: string
+      description: Mapping session lifecycle. Legal transitions are defined in HLD 4.
+      enum: [Uploading, Validating, Mapping, InReview, Approved, Syncing, Synced, Failed]
+    Role:
+      type: string
+      enum: [FinanceManager, Accountant, Auditor, Administrator]
+    AccountType:
+      type: string
+      enum: [Asset, Liability, Equity, Revenue, Expense, Memo]
+    MatchType:
+      type: string
+      description: Strategy that produced the suggestion. Trust differs by strategy, so it is always shown.
+      enum: [Rule-Based, AI Semantic, Similarity]
+    SuggestionState:
+      type: string
+      enum: [Pending, Accepted, Overridden, Flagged]
+    ExceptionType:
+      type: string
+      enum: [Ambiguous Mapping, Missing Code, Duplicate, No Match, System Error]
+    Priority:
+      type: string
+      enum: [High, Medium, Low]
+    Severity:
+      type: string
+      description: Error blocks progression; Warning informs but does not block (LLD 2.4).
+      enum: [Warning, Error]
+    SyncStatus:
+      type: string
+      description: Partial is a first-class state and is never reported as Success (LLD 6.1).
+      enum: [Success, Partial, Failed]
+    RuleStatus:
+      type: string
+      enum: [Active, Draft, Deprecated]
+    UserStatus:
+      type: string
+      enum: [Active, Suspended, Pending]
+    LedgerAccountStatus:
+      type: string
+      enum: [Active, Inactive]
+    AuditCategory:
+      type: string
+      enum: [Upload, Validation, Mapping, Override, Approval, Sync, Report, Access]
+    Resolution:
+      type: string
+      enum: [Accepted, Overridden, Escalated]
+
+    Confidence:
+      type: number
+      format: double
+      minimum: 0
+      maximum: 100
+      description: Adjusted confidence, clamped to 0-100. No value outside the range is ever persisted.
+
+    ApiError:
+      type: object
+      description: >
+        The single error envelope used by every ALM service (LLD 9). A tenant-scoped resource
+        the caller may not see returns 404, never 403 - existence is not disclosed.
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          example: https://alm.azets.internal/errors/validation-failed
+        title: { type: string, example: Unprocessable Entity }
+        status: { type: integer, example: 422 }
+        detail: { type: string, example: 3 rows contain errors }
+        correlationId:
+          type: string
+          description: Quote this to support; the help flow pre-fills it (UF-13).
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+                description: Source file row number, so the user can find it in their own file.
+              field: { type: string }
+              message: { type: string }
+
+    AcceptedResponse:
+      type: object
+      description: >
+        Returned by operations that are asynchronous by design. The client polls; no progress
+        indicator may claim completion before the server reports it (LLD 8.3).
+      properties:
+        id: { type: string }
+        status: { type: string }
+        pollUrl: { type: string }
+        message: { type: string }
+
+    PageMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        totalItems: { type: integer, format: int64 }
+        totalPages: { type: integer }
+
+  responses:
+    BadRequest:
+      description: Malformed request syntax. Not used for business-rule failure.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unauthorized:
+      description: Missing or expired token. Not used for insufficient role.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: Insufficient role, or a segregation-of-duties violation (AP-4.5).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Unknown resource, or a resource outside the caller's tenant.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Conflict:
+      description: Illegal state transition, or a stale optimistic-concurrency version.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unprocessable:
+      description: Semantic validation failure.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    TooManyRequests:
+      description: Rate limit exceeded at the gateway.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unavailable:
+      description: A dependency is unavailable. Carries Retry-After.
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }

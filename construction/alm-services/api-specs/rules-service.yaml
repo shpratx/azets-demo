@@ -1,0 +1,260 @@
+openapi: 3.1.0
+info:
+  title: ALM Rules Service
+  version: 1.0.0
+  description: >
+    Deterministic rule evaluation and simulation (epic F0.4). The engine is stateless and holds
+    no session state (AP-1.4). Rule priority is semantically significant - lower evaluates
+    first and the first match wins, so ordering is explicit and reorderable, never implicit.
+servers:
+  - url: https://api.alm.azets.internal/rules/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Rules
+  - name: Evaluation
+  - name: Simulation
+
+paths:
+  /rules:
+    get:
+      tags: [Rules]
+      summary: List mapping rules in evaluation order
+      operationId: listRules
+      parameters:
+        - { name: status, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/RuleStatus' } }
+      responses:
+        '200':
+          description: Rules ordered by priority ascending
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MappingRule' }
+    post:
+      tags: [Rules]
+      summary: Create a mapping rule
+      description: >
+        Administrator only. The condition is parsed at save time into an AST; a condition that
+        does not parse is rejected with 422 and never stored. The DSL is deliberately
+        non-Turing-complete - no arbitrary code execution (AP-5.1, LLD 3.1).
+      operationId: createRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MappingRuleInput' }
+      responses:
+        '201':
+          description: Created in Draft
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MappingRule' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+        '422':
+          description: The condition failed to parse; the message names the offending token.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+
+  /rules/{ruleId}:
+    parameters:
+      - { name: ruleId, in: path, required: true, schema: { type: string }, example: R-014 }
+    get:
+      tags: [Rules]
+      summary: Get a rule
+      operationId: getRule
+      responses:
+        '200':
+          description: The rule
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MappingRule' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+    put:
+      tags: [Rules]
+      summary: Update a rule
+      description: Administrator only. Produces a new rule version; history is retained.
+      operationId: updateRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MappingRuleInput' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MappingRule' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+
+  /rules/{ruleId}:activate:
+    parameters:
+      - { name: ruleId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Rules]
+      summary: Activate a rule
+      description: Draft to Active, versioned and audited. Simulate before activate (UF-11).
+      operationId: activateRule
+      responses:
+        '200':
+          description: Activated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MappingRule' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+
+  /rules/{ruleId}:deprecate:
+    parameters:
+      - { name: ruleId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Rules]
+      summary: Deprecate a rule
+      description: Stops evaluating; history is retained. Rules are never hard-deleted.
+      operationId: deprecateRule
+      responses:
+        '200':
+          description: Deprecated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MappingRule' }
+
+  /rules:evaluate:
+    post:
+      tags: [Evaluation]
+      summary: Evaluate the active rule set against a batch of accounts
+      description: >
+        Called by the mapping engine on the synchronous, low-cost first strategy. First match
+        wins, so evaluation stops at the highest-priority matching rule (LLD 3.2). A rule whose
+        action targets a code that is inactive in the given ledger version yields a System Error
+        result rather than a silent bad mapping (TS-MAP-18).
+      operationId: evaluateBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ledgerVersion, accounts]
+              properties:
+                ledgerVersion: { type: string }
+                accounts:
+                  type: array
+                  items: { $ref: '#/components/schemas/EvaluationAccount' }
+      responses:
+        '200':
+          description: One result per submitted account, in the same order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: { $ref: '#/components/schemas/RuleEvaluationResult' }
+
+  /rules:simulate:
+    post:
+      tags: [Simulation]
+      summary: Simulate a candidate rule set against a stored session
+      description: >
+        F0.4.5. Runs the same evaluator against a session snapshot and writes nothing. Returns
+        the match delta against the live rule set, so an administrator can see the impact of a
+        change before activating it.
+      operationId: simulateRules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sessionId]
+              properties:
+                sessionId: { type: string }
+                candidateRules:
+                  type: array
+                  description: If omitted, the current Draft rules are simulated alongside Active ones.
+                  items: { $ref: '#/components/schemas/MappingRuleInput' }
+      responses:
+        '200':
+          description: Simulation outcome
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SimulationResult' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    MappingRule:
+      type: object
+      description: LLD 1.7.
+      properties:
+        id: { type: string, example: R-014 }
+        priority: { type: integer, description: Lower evaluates first; unique per tenant }
+        name: { type: string }
+        condition:
+          type: string
+          example: "legacyName contains 'bank' AND accountType = 'Asset'"
+        action: { type: string, description: Target master code or expression }
+        confidenceBoost: { type: number, description: Signed, applied after the base confidence }
+        status: { $ref: '_shared-components.yaml#/components/schemas/RuleStatus' }
+        usedCount:
+          type: integer
+          format: int64
+          description: Incremented asynchronously from a bus event, never in the hot path.
+        version: { type: integer }
+        createdBy: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    MappingRuleInput:
+      type: object
+      required: [name, priority, condition, action]
+      properties:
+        name: { type: string, maxLength: 200 }
+        priority: { type: integer, minimum: 1 }
+        condition: { type: string }
+        action: { type: string }
+        confidenceBoost: { type: number, default: 0 }
+
+    EvaluationAccount:
+      type: object
+      description: The five fields addressable by the condition DSL (LLD 3.1).
+      properties:
+        id: { type: string, format: uuid }
+        legacyCode: { type: string, nullable: true }
+        legacyName: { type: string, nullable: true }
+        accountType: { type: string, nullable: true }
+        parentCode: { type: string, nullable: true }
+        currency: { type: string, nullable: true }
+
+    RuleEvaluationResult:
+      type: object
+      properties:
+        accountId: { type: string, format: uuid }
+        matched: { type: boolean }
+        systemError: { type: boolean, description: True when a matched rule targets an inactive code }
+        masterCode: { type: string, nullable: true }
+        ruleId: { type: string, nullable: true }
+        baseConfidence: { type: number }
+        confidenceBoost: { type: number }
+        explanation:
+          type: string
+          description: Names the rule and the condition it matched, so the decision is inspectable.
+
+    SimulationResult:
+      type: object
+      properties:
+        sessionId: { type: string }
+        accountsEvaluated: { type: integer }
+        matchedByCandidate: { type: integer }
+        matchedByLive: { type: integer }
+        newlyMatched: { type: integer }
+        noLongerMatched: { type: integer }
+        changedTarget: { type: integer }
+        perRuleMatches:
+          type: object
+          additionalProperties: { type: integer }

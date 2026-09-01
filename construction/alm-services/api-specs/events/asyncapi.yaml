@@ -1,0 +1,123 @@
+asyncapi: 3.0.0
+info:
+  title: ALM Event Catalogue
+  version: 1.0.0
+  description: >
+    The bus contract. Every state transition propagates as an event (AP-2.4). Delivery is
+    at-least-once, so every consumer de-duplicates on eventId (LLD 10). Events are partitioned
+    by subjectId, so all events for one session are ordered relative to each other - which the
+    session state machine depends on.
+
+defaultContentType: application/json
+
+servers:
+  bus:
+    host: kafka.alm.azets.internal:9092
+    protocol: kafka
+    description: Managed message bus (Foundation Architecture 9)
+
+channels:
+  legacy.uploaded:
+    address: legacy.uploaded
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Emitted by Intake when a file has been received and the session created.
+  legacy.validated:
+    address: legacy.validated
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Emitted by Intake when the pipeline completes with zero Error-severity issues. Consumed by Mapping.
+  legacy.validation.failed:
+    address: legacy.validation.failed
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Consumed by Notification (F1.8.2).
+  mapping.generated:
+    address: mapping.generated
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Emitted exactly once per session, carrying the ambiguity count (TS-MAP-16).
+  mapping.failed:
+    address: mapping.failed
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+  mapping.accepted:
+    address: mapping.accepted
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+  review.created:
+    address: review.created
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+  override.proposed:
+    address: override.proposed
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+  override.approved:
+    address: override.approved
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Consumed by Audit, which writes the record - Review never writes audit inline (LLD 5.2).
+  override.rejected:
+    address: override.rejected
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+  mapping.completed:
+    address: mapping.completed
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Session approved. Consumed by Integration to begin the Cozone export.
+  sync.completed:
+    address: sync.completed
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Carries status and failure count. Partial is never reported as Success.
+  sync.failed:
+    address: sync.failed
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+  report.generated:
+    address: report.generated
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+  rule.matched:
+    address: rule.matched
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Drives the asynchronous usedCount increment, keeping it off the evaluation hot path.
+  ledger.changed:
+    address: ledger.changed
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+  access.event:
+    address: access.event
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Authentication and privileged actions, written to the same immutable store (AP-9.10).
+  config.changed:
+    address: config.changed
+    messages: { event: { $ref: '#/components/messages/AlmEvent' } }
+    description: Threshold changes are audited configuration events (LLD 4.3).
+
+operations:
+  intakePublishesUploaded:
+    action: send
+    channel: { $ref: '#/channels/legacy.uploaded' }
+  mappingConsumesValidated:
+    action: receive
+    channel: { $ref: '#/channels/legacy.validated' }
+  integrationConsumesCompleted:
+    action: receive
+    channel: { $ref: '#/channels/mapping.completed' }
+  auditConsumesAll:
+    action: receive
+    channel: { $ref: '#/channels/override.approved' }
+  notificationConsumesFailures:
+    action: receive
+    channel: { $ref: '#/channels/sync.failed' }
+
+components:
+  messages:
+    AlmEvent:
+      name: AlmEvent
+      title: ALM event envelope
+      payload:
+        type: object
+        required: [eventId, type, occurredAt, subjectId, tenantId, correlationId]
+        properties:
+          eventId:
+            type: string
+            format: uuid
+            description: Consumers de-duplicate on this. Delivery is at-least-once.
+          type: { type: string }
+          occurredAt: { type: string, format: date-time }
+          subjectId: { type: string, description: Partition key - session, exception or account id }
+          tenantId: { type: string, format: uuid }
+          actor: { type: string, description: A user principal, or system:<service> }
+          correlationId: { type: string, description: Propagated end to end (AP-7.2) }
+          payload:
+            type: object
+            additionalProperties: true

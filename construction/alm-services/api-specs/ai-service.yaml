@@ -1,0 +1,123 @@
+openapi: 3.1.0
+info:
+  title: ALM AI Inference Service
+  version: 1.0.0
+  description: >
+    Semantic suggestion, similarity scoring and explanation generation (epics F0.5, F1.3.2-.3).
+    Deliberately off the critical path for rule-satisfied accounts - the mapping engine never
+    calls this service for an account a rule has already resolved, which bounds inference cost.
+    Every returned suggestion carries an explanation; the Explainability Framework (F0.5.5)
+    makes an unexplained suggestion invalid by contract.
+servers:
+  - url: https://api.alm.azets.internal/ai/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Inference
+  - name: Models
+
+paths:
+  /suggest:batch:
+    post:
+      tags: [Inference]
+      summary: Generate semantic mapping suggestions for a batch of accounts
+      description: >
+        Batched by design - AI_BATCH_SIZE accounts per call. Callers must treat failure as
+        non-fatal: mapping degrades to rules plus similarity rather than failing (AP-6.5).
+      operationId: suggestBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ledgerVersion, accounts]
+              properties:
+                ledgerVersion: { type: string }
+                topK: { type: integer, default: 3, minimum: 1, maximum: 10 }
+                accounts:
+                  type: array
+                  maxItems: 500
+                  items:
+                    type: object
+                    properties:
+                      id: { type: string, format: uuid }
+                      legacyCode: { type: string, nullable: true }
+                      legacyName: { type: string, nullable: true }
+                      normalisedType:
+                        allOf: [ { $ref: '_shared-components.yaml#/components/schemas/AccountType' } ]
+                        nullable: true
+                      parentCode: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Ranked candidates per account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  modelVersion: { type: string }
+                  results:
+                    type: array
+                    items: { $ref: '#/components/schemas/AiSuggestionSet' }
+        '503': { $ref: '_shared-components.yaml#/components/responses/Unavailable' }
+
+  /models:
+    get:
+      tags: [Models]
+      summary: List registered models (F0.5.4)
+      operationId: listModels
+      responses:
+        '200':
+          description: Model registry entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ModelDescriptor' }
+
+  /models/active:
+    get:
+      tags: [Models]
+      summary: Get the active model
+      operationId: getActiveModel
+      responses:
+        '200':
+          description: Active model
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ModelDescriptor' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    AiSuggestionSet:
+      type: object
+      properties:
+        accountId: { type: string, format: uuid }
+        candidates:
+          type: array
+          items:
+            type: object
+            required: [masterCode, confidence, explanation]
+            properties:
+              masterCode: { type: string }
+              masterName: { type: string }
+              confidence: { $ref: '_shared-components.yaml#/components/schemas/Confidence' }
+              explanation:
+                type: string
+                minLength: 1
+                description: Human-readable reason. Mandatory by contract (F0.5.5).
+
+    ModelDescriptor:
+      type: object
+      properties:
+        version: { type: string }
+        trainedAt: { type: string, format: date-time, nullable: true }
+        active: { type: boolean }
+        strategy: { type: string, description: e.g. lexical-embedding, hosted-llm }
+        metrics:
+          type: object
+          additionalProperties: { type: number }

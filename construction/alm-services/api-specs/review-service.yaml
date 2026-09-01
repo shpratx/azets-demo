@@ -1,0 +1,313 @@
+openapi: 3.1.0
+info:
+  title: ALM Review Service
+  version: 1.0.0
+  description: >
+    Exception queue, assignment, override capture and approval workflow (HLD 5.4; epics F1.4,
+    F1.5). Two frictions are deliberate and enforced server-side: a mandatory justification, and
+    a second pair of eyes - the proposer of an override may never approve it (AP-4.5).
+servers:
+  - url: https://api.alm.azets.internal/review/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Exceptions
+  - name: Overrides
+  - name: SessionApproval
+
+paths:
+  /exceptions:
+    get:
+      tags: [Exceptions]
+      summary: List exceptions on the review queue
+      description: >
+        Default sort is priority then age, oldest High first (UF-05). ageHours is derived from
+        createdAt at read time and is never a stale stored value (TS-EXC-06).
+      operationId: listExceptions
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/PageParam'
+        - $ref: '_shared-components.yaml#/components/parameters/SizeParam'
+        - { name: sessionId, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/ExceptionType' } }
+        - { name: priority, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/Priority' } }
+        - { name: assignedTo, in: query, schema: { type: string } }
+        - name: unresolvedOnly
+          in: query
+          schema: { type: boolean, default: true }
+      responses:
+        '200':
+          description: Page of exceptions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/ReviewException' }
+        '401': { $ref: '_shared-components.yaml#/components/responses/Unauthorized' }
+
+  /exceptions/{exceptionId}:
+    parameters:
+      - { name: exceptionId, in: path, required: true, schema: { type: string }, example: EX-1042 }
+    get:
+      tags: [Exceptions]
+      summary: Get one exception with its workbench context
+      description: >
+        Returns the rejected suggestion and its explanation alongside the legacy account detail,
+        so the approver can decide without re-doing the reviewer's work (UF-06).
+      operationId: getException
+      responses:
+        '200':
+          description: Exception detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionDetail' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /exceptions/{exceptionId}:claim:
+    parameters:
+      - { name: exceptionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Exceptions]
+      summary: Claim an exception
+      description: Claiming is explicit so two people never silently work the same item (UF-05).
+      operationId: claimException
+      responses:
+        '200':
+          description: Claimed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewException' }
+        '409':
+          description: Already claimed or already resolved; the message names the other user (TS-EXC-05).
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+
+  /exceptions/{exceptionId}:assign:
+    parameters:
+      - { name: exceptionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Exceptions]
+      summary: Assign an exception to another user
+      description: Supervisor only - self-claim is open to writers, assignment to others is not (TS-EXC-09).
+      operationId: assignException
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assignee]
+              properties:
+                assignee: { type: string }
+      responses:
+        '200':
+          description: Assigned
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewException' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+
+  /exceptions/{exceptionId}:escalate:
+    parameters:
+      - { name: exceptionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Exceptions]
+      summary: Escalate an exception
+      description: Raises priority to High and reassigns, capturing the reason (F1.4.4).
+      operationId: escalateException
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 1 }
+                assignee: { type: string }
+      responses:
+        '200':
+          description: Escalated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewException' }
+
+  /exceptions/{exceptionId}/override:
+    parameters:
+      - { name: exceptionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Overrides]
+      summary: Propose an override
+      description: >
+        US3. Justification is mandatory and is the substance of the audit trail, not a
+        formality - an empty justification is rejected with 422 (UF-06, TS-OVR-02).
+        The chosen master code must be active in the session's pinned ledger version.
+      operationId: proposeOverride
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [masterCode, justification]
+              properties:
+                masterCode: { type: string }
+                justification: { type: string, minLength: 1 }
+      responses:
+        '200':
+          description: Override proposed and routed to an approver
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewException' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+        '409': { $ref: '_shared-components.yaml#/components/responses/Conflict' }
+        '422':
+          description: Empty justification, or a master code that is inactive in the pinned ledger version.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+
+  /exceptions/{exceptionId}/override:approve:
+    parameters:
+      - { name: exceptionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Overrides]
+      summary: Approve a proposed override
+      description: >
+        FinanceManager or Administrator only, and never the proposer - segregation of duties is
+        enforced in the service and by a CHECK constraint in the schema (AP-4.5, TS-OVR-03).
+        Approval supersedes the prior decision into history rather than updating it in place.
+      operationId: approveOverride
+      responses:
+        '200':
+          description: Override approved; override.approved emitted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewException' }
+        '403':
+          description: Insufficient role, or the caller is the proposer.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+        '409': { $ref: '_shared-components.yaml#/components/responses/Conflict' }
+
+  /exceptions/{exceptionId}/override:reject:
+    parameters:
+      - { name: exceptionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Overrides]
+      summary: Reject a proposed override
+      description: Returns the exception to Pending; the justification is retained and the proposer is notified.
+      operationId: rejectOverride
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 1 }
+      responses:
+        '200':
+          description: Rejected
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewException' }
+
+  /sessions/{sessionId}:approve:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [SessionApproval]
+      summary: Approve a session for synchronisation
+      description: >
+        US6 gate. Blocked while any review record remains unresolved (LLD 5.3). FinanceManager
+        or Administrator only. On success the status moves to Approved and mapping.completed
+        is emitted.
+      operationId: approveSession
+      responses:
+        '200':
+          description: Approved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId: { type: string }
+                  status: { $ref: '_shared-components.yaml#/components/schemas/SessionStatus' }
+                  totalAccounts: { type: integer }
+                  overridesApplied: { type: integer }
+                  ledgerVersion: { type: string }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+        '409':
+          description: Unresolved exceptions remain, or the session is not in an approvable state.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    ReviewException:
+      type: object
+      description: LLD 1.5.
+      properties:
+        id: { type: string, example: EX-1042 }
+        sessionId: { type: string }
+        legacyAccountId: { type: string, format: uuid }
+        legacyCode: { type: string, nullable: true }
+        exceptionType: { $ref: '_shared-components.yaml#/components/schemas/ExceptionType' }
+        priority: { $ref: '_shared-components.yaml#/components/schemas/Priority' }
+        aiConfidence:
+          type: number
+          nullable: true
+          description: Snapshot of the rejected suggestion's confidence.
+        assignedTo: { type: string, nullable: true, description: Null means unclaimed }
+        createdAt: { type: string, format: date-time }
+        ageHours: { type: number, description: Derived at read time, never stored }
+        resolvedAt: { type: string, format: date-time, nullable: true }
+        resolution:
+          allOf: [ { $ref: '_shared-components.yaml#/components/schemas/Resolution' } ]
+          nullable: true
+        proposedBy: { type: string, nullable: true }
+        approvedBy: { type: string, nullable: true }
+        justification: { type: string, nullable: true }
+        proposedMasterCode: { type: string, nullable: true }
+
+    ExceptionDetail:
+      type: object
+      description: The workbench payload - legacy account, rejected suggestion, and the exception itself.
+      properties:
+        exception: { $ref: '#/components/schemas/ReviewException' }
+        legacyAccount:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            legacyCode: { type: string, nullable: true }
+            legacyName: { type: string, nullable: true }
+            normalisedType:
+              allOf: [ { $ref: '_shared-components.yaml#/components/schemas/AccountType' } ]
+              nullable: true
+            parentCode: { type: string, nullable: true }
+            currency: { type: string, nullable: true }
+            rowNumber: { type: integer }
+        rejectedSuggestion:
+          type: object
+          nullable: true
+          properties:
+            suggestedMasterCode: { type: string, nullable: true }
+            suggestedMasterName: { type: string, nullable: true }
+            matchType:
+              allOf: [ { $ref: '_shared-components.yaml#/components/schemas/MatchType' } ]
+              nullable: true
+            confidence: { $ref: '_shared-components.yaml#/components/schemas/Confidence' }
+            explanation: { type: string }
+        ledgerVersion:
+          type: string
+          description: The session's pinned version; master ledger search is scoped to it.

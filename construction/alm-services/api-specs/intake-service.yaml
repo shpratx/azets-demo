@@ -1,0 +1,260 @@
+openapi: 3.1.0
+info:
+  title: ALM Intake Service
+  version: 1.0.0
+  description: >
+    Upload receipt, format detection, parsing, normalisation, validation and quality scoring
+    (HLD 5.1, 5.2; epics F1.1, F1.2). This service performs no mapping decisions.
+    Upload is asynchronous by design: it returns 202 and the client polls session status.
+  contact: { name: ALM Intake Domain }
+servers:
+  - url: https://api.alm.azets.internal/intake/v1
+    description: Behind the API gateway, which owns authN/Z, schema validation and rate limiting (AP-2.6)
+security:
+  - bearerAuth: []
+tags:
+  - name: Sessions
+    description: Mapping session lifecycle - creation and status
+  - name: Validation
+    description: Validation issues and data-quality output
+
+paths:
+  /sessions:
+    post:
+      tags: [Sessions]
+      summary: Upload a legacy account structure and create a mapping session
+      description: >
+        US1. Accepts CSV, XLSX or XML by multipart upload. The file streams to object storage;
+        the service never buffers the whole file in memory (AP-1.4, LLD 2.2). The active master
+        ledger version is pinned onto the session at creation and does not change if the ledger
+        is edited mid-session (LLD 1.1, resolves HLD risk R-4).
+        Requires FinanceManager, Accountant or Administrator - Auditor is read-only (HLD 7.1).
+      operationId: createSession
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/CorrelationId'
+        - $ref: '_shared-components.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, firmName]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV, XLSX or XML. Content is checked against the declared extension (TS-UPL-07).
+                firmName:
+                  type: string
+                  maxLength: 200
+                  description: The acquired firm this session onboards.
+                financeManager:
+                  type: string
+                  description: Owning user; defaults to the caller.
+      responses:
+        '202':
+          description: Session created in Uploading. Poll the session for progress.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/AcceptedResponse' }
+        '401': { $ref: '_shared-components.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+        '413':
+          description: File exceeds the configured cap. The message names the cap (TS-UPL-05).
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+        '415':
+          description: Unsupported extension, or content disagreeing with the declared extension.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+        '422':
+          description: Zero-row file, or a structurally unusable upload (TS-UPL-06).
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+    get:
+      tags: [Sessions]
+      summary: List mapping sessions
+      description: Search by business facts rather than internal keys - an auditor arrives with a firm and a period (UF-09).
+      operationId: listSessions
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/PageParam'
+        - $ref: '_shared-components.yaml#/components/parameters/SizeParam'
+        - { name: firmName, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/SessionStatus' } }
+        - { name: financeManager, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: Page of sessions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '_shared-components.yaml#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/MappingSession' }
+        '401': { $ref: '_shared-components.yaml#/components/responses/Unauthorized' }
+
+  /sessions/{sessionId}:
+    parameters:
+      - name: sessionId
+        in: path
+        required: true
+        schema: { type: string }
+        example: A-2024-089
+    get:
+      tags: [Sessions]
+      summary: Get a mapping session
+      description: The polled resource during Uploading, Validating, Mapping and Syncing (LLD 8.3).
+      operationId: getSession
+      responses:
+        '200':
+          description: The session
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MappingSession' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /sessions/{sessionId}/accounts:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Sessions]
+      summary: List the parsed legacy accounts of a session
+      operationId: listLegacyAccounts
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/PageParam'
+        - $ref: '_shared-components.yaml#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of legacy accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/LegacyAccount' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /sessions/{sessionId}/validation:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Validation]
+      summary: Get the validation result for a session
+      description: >
+        Errors block progression, warnings do not; the distinction must be visible at a glance
+        and never by colour alone (UF-03). Every issue names its source row number.
+      operationId: getValidationResult
+      responses:
+        '200':
+          description: Validation summary and issue list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationResult' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+  /sessions/{sessionId}/validation/export:
+    parameters:
+      - { name: sessionId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Validation]
+      summary: Export the issue list as CSV
+      description: The exit from a blocked state is to take the list offline and fix at source (TS-VAL-09).
+      operationId: exportValidationIssues
+      responses:
+        '200':
+          description: CSV with row, code, name, issue and severity intact
+          content:
+            text/csv:
+              schema: { type: string }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    MappingSession:
+      type: object
+      description: LLD 1.1. autoMappedPct is persisted rather than derived at read time, for report stability.
+      required: [id, firmName, uploadedAt, status, ledgerVersion]
+      properties:
+        id: { type: string, example: A-2024-089 }
+        firmName: { type: string }
+        uploadedAt: { type: string, format: date-time }
+        totalAccounts: { type: integer, minimum: 0 }
+        autoMapped: { type: integer, minimum: 0 }
+        autoMappedPct: { type: number, format: double }
+        pendingReview:
+          type: integer
+          description: Drives the InReview versus Approved branch of the state machine.
+        errors: { type: integer }
+        status: { $ref: '_shared-components.yaml#/components/schemas/SessionStatus' }
+        duration:
+          type: string
+          description: Display string; an em dash while the session is still running.
+        financeManager: { type: string }
+        ledgerVersion:
+          type: string
+          description: Pinned at session start. Mapping uses this version, not the current one (TS-MAP-15).
+        correlationId: { type: string }
+
+    LegacyAccount:
+      type: object
+      description: >
+        LLD 1.3. legacyCode is deliberately not unique per session - duplicates must be storable
+        in order to be reported as Duplicate exceptions.
+      properties:
+        id: { type: string, format: uuid }
+        rowNumber: { type: integer, description: Source file row, for error reporting }
+        legacyCode: { type: string, nullable: true }
+        legacyName: { type: string, nullable: true }
+        accountType: { type: string, nullable: true, description: Raw source value, pre-normalisation }
+        normalisedType:
+          allOf: [ { $ref: '_shared-components.yaml#/components/schemas/AccountType' } ]
+          nullable: true
+        parentCode: { type: string, nullable: true }
+        currency: { type: string, maxLength: 3, nullable: true }
+        qualityFlags:
+          type: array
+          items: { type: string }
+
+    ValidationIssue:
+      type: object
+      required: [row, issue, severity]
+      properties:
+        row: { type: integer }
+        accountCode: { type: string, nullable: true }
+        accountName: { type: string, nullable: true }
+        issue: { type: string, example: "Account code missing at row 14" }
+        severity: { $ref: '_shared-components.yaml#/components/schemas/Severity' }
+
+    ValidationResult:
+      type: object
+      properties:
+        sessionId: { type: string }
+        status: { $ref: '_shared-components.yaml#/components/schemas/SessionStatus' }
+        errorCount: { type: integer }
+        warningCount: { type: integer }
+        canProceed:
+          type: boolean
+          description: True when errorCount is zero. Warnings alone allow progression (TS-VAL-07).
+        qualityScore:
+          type: number
+          format: double
+          description: Per-session score driving the readiness indicator (F1.2.5).
+        totalRows: { type: integer }
+        issues:
+          type: array
+          items: { $ref: '#/components/schemas/ValidationIssue' }

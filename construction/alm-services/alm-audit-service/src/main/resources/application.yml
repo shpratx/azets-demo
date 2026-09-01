@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: alm-audit-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/auditdb}
+    username: ${DB_USER:alm}
+    password: ${DB_PASSWORD:alm}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100
+        order_inserts: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # AP-9.3: tokens validated against the enterprise IdP JWKS endpoint.
+          issuer-uri: ${OIDC_ISSUER_URI:https://idp.azets.internal/realms/alm}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: alm-audit-service
+    producer:
+      properties:
+        spring.json.add.type.headers: false
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+server:
+  port: 8088
+  shutdown: graceful
+
+alm:
+  events:
+    transport: ${ALM_EVENT_TRANSPORT:kafka}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      service: alm-audit-service
+
+logging:
+  pattern:
+    # LLD 11: correlation id on every log line. Never log legacy account names or file content.
+    level: "%5p [${spring.application.name},%X{correlationId:-}]"

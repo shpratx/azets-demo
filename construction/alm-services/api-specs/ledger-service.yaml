@@ -1,0 +1,240 @@
+openapi: 3.1.0
+info:
+  title: ALM Ledger Service
+  version: 1.0.0
+  description: >
+    Master ledger CRUD, versioning and classification (epic F0.3). Read-only to Mapping and
+    Review - neither may write here (HLD 3.1). Accounts are deactivated, never hard-deleted,
+    and every change produces an audit event and a new ledger version (UF-11).
+servers:
+  - url: https://api.alm.azets.internal/ledger/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Accounts
+  - name: Versions
+
+paths:
+  /accounts:
+    get:
+      tags: [Accounts]
+      summary: Search the master ledger
+      description: >
+        Backs the workbench type-ahead (F1.5.3). Inactive codes never appear in suggestion
+        contexts; activeOnly defaults to true for that reason (LLD 1.6, TS-MAP-11).
+      operationId: searchAccounts
+      parameters:
+        - $ref: '_shared-components.yaml#/components/parameters/PageParam'
+        - $ref: '_shared-components.yaml#/components/parameters/SizeParam'
+        - name: ledgerVersion
+          in: query
+          schema: { type: string }
+          description: Defaults to the current active version. Callers mapping a session must pass the session's pinned version.
+        - { name: q, in: query, schema: { type: string }, description: Free text over code, name and classification }
+        - { name: type, in: query, schema: { $ref: '_shared-components.yaml#/components/schemas/AccountType' } }
+        - { name: classification, in: query, schema: { type: string } }
+        - { name: activeOnly, in: query, schema: { type: boolean, default: true } }
+      responses:
+        '200':
+          description: Page of master ledger accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/MasterLedgerAccount' }
+    post:
+      tags: [Accounts]
+      summary: Create a master ledger account
+      description: Administrator only (HLD 7.1). Creates a new ledger version.
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MasterLedgerAccountInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MasterLedgerAccount' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+        '409':
+          description: The code already exists in this ledger version.
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/ApiError' }
+
+  /accounts/{code}:
+    parameters:
+      - { name: code, in: path, required: true, schema: { type: string } }
+      - { name: ledgerVersion, in: query, schema: { type: string } }
+    get:
+      tags: [Accounts]
+      summary: Get a master ledger account
+      operationId: getAccount
+      responses:
+        '200':
+          description: The account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MasterLedgerAccount' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+    put:
+      tags: [Accounts]
+      summary: Update a master ledger account
+      description: Administrator only. Produces a new ledger version and an audit event.
+      operationId: updateAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MasterLedgerAccountInput' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MasterLedgerAccount' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+
+  /accounts/{code}:deactivate:
+    parameters:
+      - { name: code, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Accounts]
+      summary: Deactivate a master ledger account
+      description: >
+        Never a hard delete (UF-11). The response names the active sessions that map to this
+        code so the administrator sees the impact before confirming.
+      operationId: deactivateAccount
+      responses:
+        '200':
+          description: Deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account: { $ref: '#/components/schemas/MasterLedgerAccount' }
+                  affectedSessions:
+                    type: array
+                    items: { type: string }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+
+  /accounts:import:
+    post:
+      tags: [Accounts]
+      summary: Import a master ledger (F0.3.1)
+      description: Administrator only. Creates a new ledger version containing the imported set.
+      operationId: importLedger
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                versionLabel: { type: string }
+      responses:
+        '202':
+          description: Import accepted
+          content:
+            application/json:
+              schema: { $ref: '_shared-components.yaml#/components/schemas/AcceptedResponse' }
+        '403': { $ref: '_shared-components.yaml#/components/responses/Forbidden' }
+
+  /versions:
+    get:
+      tags: [Versions]
+      summary: List ledger versions
+      operationId: listVersions
+      responses:
+        '200':
+          description: Versions, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/LedgerVersion' }
+
+  /versions/current:
+    get:
+      tags: [Versions]
+      summary: Get the current active ledger version
+      description: Called by Intake at session creation to pin the version onto the session (LLD 1.1).
+      operationId: getCurrentVersion
+      responses:
+        '200':
+          description: Current version
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LedgerVersion' }
+
+  /versions/{version}/index:
+    parameters:
+      - { name: version, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Versions]
+      summary: Get the full active-account index for a ledger version
+      description: >
+        Bulk read used by the mapping engine; cached and read-only. Returns active accounts
+        only, which is what makes "an inactive code is never suggested" true by construction.
+      operationId: getLedgerIndex
+      responses:
+        '200':
+          description: Active accounts in this version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ledgerVersion: { type: string }
+                  accounts:
+                    type: array
+                    items: { $ref: '#/components/schemas/MasterLedgerAccount' }
+        '404': { $ref: '_shared-components.yaml#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: '_shared-components.yaml#/components/securitySchemes/bearerAuth'
+  schemas:
+    MasterLedgerAccount:
+      type: object
+      description: LLD 1.6. Primary key is (code, ledgerVersion).
+      required: [code, ledgerVersion, name, type, status]
+      properties:
+        code: { type: string }
+        ledgerVersion: { type: string }
+        name: { type: string }
+        classification: { type: string, nullable: true }
+        type: { $ref: '_shared-components.yaml#/components/schemas/AccountType' }
+        parentCode: { type: string, nullable: true }
+        status: { $ref: '_shared-components.yaml#/components/schemas/LedgerAccountStatus' }
+        lastModified: { type: string, format: date-time }
+
+    MasterLedgerAccountInput:
+      type: object
+      required: [code, name, type]
+      properties:
+        code: { type: string, maxLength: 50 }
+        name: { type: string, maxLength: 300 }
+        classification: { type: string, nullable: true }
+        type: { $ref: '_shared-components.yaml#/components/schemas/AccountType' }
+        parentCode: { type: string, nullable: true }
+
+    LedgerVersion:
+      type: object
+      properties:
+        version: { type: string }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: string }
+        accountCount: { type: integer }
+        current: { type: boolean }
+        note: { type: string, nullable: true }
